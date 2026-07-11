@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>套装详情查询 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">护肤套装详情查询</span>
+          <span class="page-desc">复杂查询 3 - 多表联查：ProductBundle + BundleItem + SkincareProduct + SkinType</span>
+        </div>
+
+        <!-- 查询条件 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>套装名称：</label>
+            <input type="text" class="form-input" id="searchName" placeholder="如：补水保湿套装">
+          </div>
+          <div class="search-item">
+            <label>适用肤质：</label>
+            <select class="form-select" id="searchSkinType">
+              <option value="">全部</option>
+              <option value="干皮">干皮</option>
+              <option value="油皮">油皮</option>
+              <option value="敏感肌">敏感肌</option>
+              <option value="所有肤质">所有肤质</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData()">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 套装列表 -->
+        <div id="bundleList"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    async function loadData() {
+      const params = {
+        name: document.getElementById('searchName').value,
+        skinType: document.getElementById('searchSkinType').value,
+      };
+      const res = await fetchGet('/bundle/detail', params);
+      if (res.code === 0) {
+        renderBundles(res.data || []);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderBundles([]);
+      }
+    }
+
+    function renderBundles(list) {
+      const container = document.getElementById('bundleList');
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">暂无套装数据</div></div>`;
+        return;
+      }
+      container.innerHTML = list.map(bundle => `
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-body">
+            <div style="display:flex;align-items:center;margin-bottom:16px;">
+              <div>
+                <span class="page-title" style="font-size:16px;">${escapeHTML(bundle.BundleName)}</span>
+                <span class="tag tag-info" style="margin-left:8px;">${escapeHTML(bundle.SkinType)}</span>
+              </div>
+              <div style="margin-left:auto;text-align:right;">
+                <div class="text-muted text-sm">套装总价</div>
+                <div class="text-bold text-danger" style="font-size:20px;">¥${bundle.TotalPrice}</div>
+              </div>
+            </div>
+            <div class="text-muted" style="margin-bottom:12px;font-size:13px;">${escapeHTML(bundle.Description)}</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>产品名称</th>
+                  <th>品牌</th>
+                  <th>功效</th>
+                  <th>单价</th>
+                  <th>数量</th>
+                  <th>小计</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${bundle.Items.map(item => `
+                  <tr>
+                    <td class="text-bold">${escapeHTML(item.ProductName)}</td>
+                    <td>${escapeHTML(item.Brand)}</td>
+                    <td><span class="tag tag-primary">${escapeHTML(item.Effect)}</span></td>
+                    <td>¥${item.Price}</td>
+                    <td>${item.Quantity}</td>
+                    <td class="text-bold">¥${item.Price * item.Quantity}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function resetSearch() {
+      document.getElementById('searchName').value = '';
+      document.getElementById('searchSkinType').value = '';
+      loadData();
+    }
+
+    initPage('bundle-detail', ['护肤品管理', '套装详情查询']);
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工作台 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon pink">📷</div>
+            <div class="stat-info">
+              <div class="stat-label">照片总数</div>
+              <div class="stat-value" id="statPhoto">128</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📊</div>
+            <div class="stat-info">
+              <div class="stat-label">AI分析次数</div>
+              <div class="stat-value" id="statAnalysis">96</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">💡</div>
+            <div class="stat-info">
+              <div class="stat-label">推荐记录</div>
+              <div class="stat-value" id="statRecommend">256</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">🧴</div>
+            <div class="stat-info">
+              <div class="stat-label">护肤产品</div>
+              <div class="stat-value" id="statSkincare">45</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 快捷入口 -->
+        <div class="card">
+          <div class="card-body">
+            <div class="panel-title">快捷入口</div>
+            <div class="quick-grid">
+              <a class="quick-card" href="photo.html">
+                <div class="quick-icon">📷</div>
+                <div class="quick-title">照片管理</div>
+              </a>
+              <a class="quick-card" href="recommend.html">
+                <div class="quick-icon">💡</div>
+                <div class="quick-title">推荐管理</div>
+              </a>
+              <a class="quick-card" href="skincare.html">
+                <div class="quick-icon">🧴</div>
+                <div class="quick-title">护肤品管理</div>
+              </a>
+              <a class="quick-card" href="analysis.html">
+                <div class="quick-icon">📊</div>
+                <div class="quick-title">分析查询</div>
+              </a>
+              <a class="quick-card" href="style.html">
+                <div class="quick-icon">🎨</div>
+                <div class="quick-title">风格管理</div>
+              </a>
+              <a class="quick-card" href="admin.html">
+                <div class="quick-icon">⚙️</div>
+                <div class="quick-title">管理员管理</div>
+              </a>
+              <a class="quick-card" href="log.html">
+                <div class="quick-icon">📝</div>
+                <div class="quick-title">日志统计</div>
+              </a>
+              <a class="quick-card" href="user.html">
+                <div class="quick-icon">👤</div>
+                <div class="quick-title">用户管理</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 风格热度排行图表 -->
+        <div class="chart-container">
+          <div class="panel-title">风格热度排行（近7天）</div>
+          <div class="bar-chart" id="styleChart">
+            <div class="bar-item">
+              <div class="bar-value">86</div>
+              <div class="bar" style="height:86%;"></div>
+              <div class="bar-label">韩系风</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-value">72</div>
+              <div class="bar" style="height:72%;"></div>
+              <div class="bar-label">日系风</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-value">65</div>
+              <div class="bar" style="height:65%;"></div>
+              <div class="bar-label">欧美风</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-value">48</div>
+              <div class="bar" style="height:48%;"></div>
+              <div class="bar-label">国风</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-value">36</div>
+              <div class="bar" style="height:36%;"></div>
+              <div class="bar-label">复古风</div>
+            </div>
+            <div class="bar-item">
+              <div class="bar-value">24</div>
+              <div class="bar" style="height:24%;"></div>
+              <div class="bar-label">甜美风</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    initPage('dashboard', ['工作台']);
+  </script>
+</body>
+</html>

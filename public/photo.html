@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片管理 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">照片管理</span>
+          <span class="page-desc">CRUD 1 - 对应表：Photo</span>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增照片</button>
+          </div>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>用户ID：</label>
+            <input type="text" class="form-input" id="searchUserId" placeholder="请输入用户ID">
+          </div>
+          <div class="search-item">
+            <label>上传时间：</label>
+            <input type="date" class="form-input" id="searchDate">
+          </div>
+          <div class="search-item">
+            <label>状态：</label>
+            <select class="form-select" id="searchStatus">
+              <option value="">全部</option>
+              <option value="已完成">已完成</option>
+              <option value="分析中">分析中</option>
+              <option value="分析失败">分析失败</option>
+              <option value="未分析">未分析</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>照片ID</th>
+                <th>用户</th>
+                <th>图片</th>
+                <th>图片地址</th>
+                <th>上传时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    let total = 0;
+    let currentList = [];
+
+    const mockData = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page,
+        pageSize,
+        userId: document.getElementById('searchUserId').value,
+        date: document.getElementById('searchDate').value,
+        status: document.getElementById('searchStatus').value,
+      };
+
+      const res = await fetchGet('/photo/page', params);
+      if (res.code === 0) {
+        currentList = res.data.list || [];
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(7);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.PhotoID}</td>
+          <td>${escapeHTML(row.UserName)}</td>
+          <td><div class="thumb-placeholder">图片</div></td>
+          <td class="text-muted text-sm">${escapeHTML(row.ImageURL)}</td>
+          <td>${formatDate(row.UploadTime)}</td>
+          <td><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-danger'}">${row.Status}</span></td>
+          <td class="col-actions">
+            <button class="btn-link" onclick="showEditModal(${row.PhotoID})">修改</button>
+            <button class="btn-link danger" onclick="deletePhoto(${row.PhotoID})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchUserId').value = '';
+      document.getElementById('searchDate').value = '';
+      document.getElementById('searchStatus').value = '';
+      loadData(1);
+    }
+
+    function showAddModal() {
+      const bodyHTML = `
+        <div class="form-group">
+          <label>用户ID <span class="required">*</span></label>
+          <input type="number" class="form-input" id="formUserId" placeholder="请输入用户ID">
+        </div>
+        <div class="form-group">
+          <label>图片地址 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formImageURL" placeholder="请输入图片地址或上传文件">
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-select" id="formStatus">
+            <option value="已完成">已完成</option>
+            <option value="分析中">分析中</option>
+            <option value="分析失败">分析失败</option>
+            <option value="未分析">未分析</option>
+          </select>
+        </div>
+      `;
+      showModal('新增照片', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAdd()">确定新增</button>
+      `);
+    }
+
+    async function submitAdd() {
+      const data = {
+        UserID: document.getElementById('formUserId').value,
+        ImageURL: document.getElementById('formImageURL').value,
+        Status: document.getElementById('formStatus').value,
+      };
+      if (!data.UserID || !data.ImageURL) {
+        showToast('请填写必填项', 'warning');
+        return;
+      }
+      const res = await fetchPost('/photo/add', data);
+      if (res.code === 0) {
+        showToast('新增成功', 'success');
+        closeModal();
+        loadData(1);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function showEditModal(id) {
+      const row = currentList.find(r => r.PhotoID === id);
+      if (!row) return;
+      const bodyHTML = `
+        <div class="form-group">
+          <label>照片ID</label>
+          <input type="text" class="form-input" value="${id}" disabled>
+        </div>
+        <div class="form-group">
+          <label>用户</label>
+          <input type="text" class="form-input" id="formUserName" value="${escapeHTML(row.UserName)}">
+        </div>
+        <div class="form-group">
+          <label>图片地址 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formImageURL" value="${escapeHTML(row.ImageURL)}">
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select class="form-select" id="formStatus">
+            <option value="已完成" ${row.Status === '已完成' ? 'selected' : ''}>已完成</option>
+            <option value="分析中" ${row.Status === '分析中' ? 'selected' : ''}>分析中</option>
+            <option value="分析失败" ${row.Status === '分析失败' ? 'selected' : ''}>分析失败</option>
+            <option value="未分析" ${row.Status === '未分析' ? 'selected' : ''}>未分析</option>
+          </select>
+        </div>
+      `;
+      showModal('修改照片信息', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitEdit(${id})">保存修改</button>
+      `);
+    }
+
+    async function submitEdit(id) {
+      const data = {
+        PhotoID: id,
+        UserName: document.getElementById('formUserName').value,
+        ImageURL: document.getElementById('formImageURL').value,
+        Status: document.getElementById('formStatus').value,
+      };
+      if (!data.ImageURL) {
+        showToast('图片地址不能为空', 'warning');
+        return;
+      }
+      const res = await fetchPost('/photo/update', data);
+      if (res.code === 0) {
+        showToast('修改成功', 'success');
+        closeModal();
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function deletePhoto(id) {
+      confirmDialog(`确定要删除照片ID为 ${id} 的记录吗？`, async () => {
+        const res = await fetchPost('/photo/delete', { PhotoID: id });
+        if (res.code === 0) {
+          showToast('删除成功', 'success');
+          loadData(currentPage);
+        } else {
+          showToast(res.msg || '操作失败', 'error');
+        }
+      });
+    }
+
+    initPage('photo', ['照片管理']);
+    loadData(1);
+  </script>
+</body>
+</html>

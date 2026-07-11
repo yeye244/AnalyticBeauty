@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推荐详情查询 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">推荐详情查询</span>
+          <span class="page-desc">复杂查询 2 - 多表联查：Recommendation + User + AnalysisResult</span>
+        </div>
+
+        <!-- 查询条件 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>用户昵称：</label>
+            <input type="text" class="form-input" id="searchUser" placeholder="请输入用户昵称">
+          </div>
+          <div class="search-item">
+            <label>推荐类型：</label>
+            <select class="form-select" id="searchType">
+              <option value="">全部</option>
+              <option value="风格">风格</option>
+              <option value="护肤">护肤</option>
+              <option value="妆容">妆容</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>是否采纳：</label>
+            <select class="form-select" id="searchStatus">
+              <option value="">全部</option>
+              <option value="已采纳">已采纳</option>
+              <option value="未采纳">未采纳</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>推荐ID</th>
+                <th>用户昵称</th>
+                <th>肤色</th>
+                <th>脸型</th>
+                <th>推荐类型</th>
+                <th>推荐理由</th>
+                <th>是否采纳</th>
+                <th>推荐时间</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        user: document.getElementById('searchUser').value,
+        type: document.getElementById('searchType').value,
+        status: document.getElementById('searchStatus').value,
+      };
+      const res = await fetchGet('/recommend/detail', params);
+      if (res.code === 0) {
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, total) {
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(8);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.RecommendID}</td>
+          <td class="text-bold">${escapeHTML(row.UserName)}</td>
+          <td><span class="tag tag-primary">${escapeHTML(row.SkinTone)}</span></td>
+          <td>${escapeHTML(row.FaceShape)}</td>
+          <td><span class="tag tag-info">${escapeHTML(row.RecommendType)}</span></td>
+          <td>${escapeHTML(row.RecommendReason)}</td>
+          <td><span class="tag ${row.IsAdopted === '已采纳' ? 'tag-success' : 'tag-default'}">${row.IsAdopted}</span></td>
+          <td>${formatDate(row.RecommendTime)}</td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchUser').value = '';
+      document.getElementById('searchType').value = '';
+      document.getElementById('searchStatus').value = '';
+      loadData(1);
+    }
+
+    initPage('recommend-detail', ['推荐管理', '推荐详情查询']);
+    loadData(1);
+  </script>
+</body>
+</html>

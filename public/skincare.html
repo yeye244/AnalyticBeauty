@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>护肤产品管理 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">护肤产品管理</span>
+          <span class="page-desc">CRUD 3 - 对应表：SkincareProduct（支持多条件查询）</span>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增产品</button>
+            <a href="bundle-detail.html" class="btn btn-default">查看套装详情</a>
+          </div>
+        </div>
+
+        <!-- 搜索栏（多条件查询 - 评优修改点） -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>品牌：</label>
+            <input type="text" class="form-input" id="searchBrand" placeholder="如：A品牌">
+          </div>
+          <div class="search-item">
+            <label>价格范围：</label>
+            <input type="number" class="form-input" id="searchPriceMin" placeholder="最低" style="width:80px;">
+            <span>~</span>
+            <input type="number" class="form-input" id="searchPriceMax" placeholder="最高" style="width:80px;">
+          </div>
+          <div class="search-item">
+            <label>肤质：</label>
+            <select class="form-select" id="searchSkinType">
+              <option value="">全部</option>
+              <option value="干皮">干皮</option>
+              <option value="油皮">油皮</option>
+              <option value="混干">混干</option>
+              <option value="混油">混油</option>
+              <option value="敏感肌">敏感肌</option>
+              <option value="所有肤质">所有肤质</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>功效：</label>
+            <select class="form-select" id="searchEffect">
+              <option value="">全部</option>
+              <option value="补水">补水</option>
+              <option value="美白">美白</option>
+              <option value="抗老">抗老</option>
+              <option value="控油">控油</option>
+              <option value="修护">修护</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>产品ID</th>
+                <th>产品名称</th>
+                <th>品牌</th>
+                <th>功效</th>
+                <th>价格</th>
+                <th>肤质</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    let total = 0;
+    let currentList = [];
+
+    const mockData = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        brand: document.getElementById('searchBrand').value,
+        priceMin: document.getElementById('searchPriceMin').value,
+        priceMax: document.getElementById('searchPriceMax').value,
+        skinType: document.getElementById('searchSkinType').value,
+        effect: document.getElementById('searchEffect').value,
+      };
+      const res = await fetchGet('/skincare/page', params);
+      if (res.code === 0) {
+        currentList = res.data.list || [];
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(7);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.ProductID}</td>
+          <td class="text-bold">${escapeHTML(row.ProductName)}</td>
+          <td>${escapeHTML(row.Brand)}</td>
+          <td><span class="tag tag-primary">${escapeHTML(row.Effect)}</span></td>
+          <td class="text-bold text-danger">¥${row.Price}</td>
+          <td><span class="tag tag-info">${escapeHTML(row.SkinType)}</span></td>
+          <td class="col-actions">
+            <button class="btn-link" onclick="showEditModal(${row.ProductID})">修改</button>
+            <button class="btn-link danger" onclick="deleteProduct(${row.ProductID})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchBrand').value = '';
+      document.getElementById('searchPriceMin').value = '';
+      document.getElementById('searchPriceMax').value = '';
+      document.getElementById('searchSkinType').value = '';
+      document.getElementById('searchEffect').value = '';
+      loadData(1);
+    }
+
+    function showAddModal() {
+      const bodyHTML = `
+        <div class="form-group">
+          <label>产品名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formName" placeholder="请输入产品名称">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>品牌 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="formBrand" placeholder="请输入品牌">
+          </div>
+          <div class="form-group">
+            <label>价格 <span class="required">*</span></label>
+            <input type="number" class="form-input" id="formPrice" placeholder="请输入价格">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>功效</label>
+            <select class="form-select" id="formEffect">
+              <option value="补水">补水</option>
+              <option value="美白">美白</option>
+              <option value="抗老">抗老</option>
+              <option value="控油">控油</option>
+              <option value="修护">修护</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>适用肤质</label>
+            <select class="form-select" id="formSkinType">
+              <option value="所有肤质">所有肤质</option>
+              <option value="干皮">干皮</option>
+              <option value="油皮">油皮</option>
+              <option value="混干">混干</option>
+              <option value="混油">混油</option>
+              <option value="敏感肌">敏感肌</option>
+            </select>
+          </div>
+        </div>
+      `;
+      showModal('新增护肤产品', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAdd()">确定新增</button>
+      `);
+    }
+
+    async function submitAdd() {
+      const data = {
+        ProductName: document.getElementById('formName').value,
+        Brand: document.getElementById('formBrand').value,
+        Price: document.getElementById('formPrice').value,
+        Effect: document.getElementById('formEffect').value,
+        SkinType: document.getElementById('formSkinType').value,
+      };
+      if (!data.ProductName || !data.Brand || !data.Price) {
+        showToast('请填写必填项', 'warning');
+        return;
+      }
+      const res = await fetchPost('/skincare/add', data);
+      if (res.code === 0) {
+        showToast('新增成功', 'success');
+        closeModal();
+        loadData(1);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function showEditModal(id) {
+      const row = currentList.find(r => r.ProductID === id);
+      if (!row) return;
+      const bodyHTML = `
+        <div class="form-group">
+          <label>产品ID</label>
+          <input type="text" class="form-input" value="${id}" disabled>
+        </div>
+        <div class="form-group">
+          <label>产品名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formName" value="${escapeHTML(row.ProductName)}">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>品牌 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="formBrand" value="${escapeHTML(row.Brand)}">
+          </div>
+          <div class="form-group">
+            <label>价格 <span class="required">*</span></label>
+            <input type="number" class="form-input" id="formPrice" value="${row.Price}">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>功效</label>
+            <select class="form-select" id="formEffect">
+              ${['补水','美白','抗老','控油','修护'].map(e => `<option value="${e}" ${row.Effect === e ? 'selected' : ''}>${e}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>适用肤质</label>
+            <select class="form-select" id="formSkinType">
+              ${['所有肤质','干皮','油皮','混干','混油','敏感肌'].map(s => `<option value="${s}" ${row.SkinType === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+      showModal('修改产品信息', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitEdit(${id})">保存修改</button>
+      `);
+    }
+
+    async function submitEdit(id) {
+      const data = {
+        ProductID: id,
+        ProductName: document.getElementById('formName').value,
+        Brand: document.getElementById('formBrand').value,
+        Price: document.getElementById('formPrice').value,
+        Effect: document.getElementById('formEffect').value,
+        SkinType: document.getElementById('formSkinType').value,
+      };
+      if (!data.ProductName || !data.Brand || !data.Price) {
+        showToast('请填写必填项', 'warning');
+        return;
+      }
+      const res = await fetchPost('/skincare/update', data);
+      if (res.code === 0) {
+        showToast('修改成功', 'success');
+        closeModal();
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function deleteProduct(id) {
+      confirmDialog(`确定要删除产品ID为 ${id} 的记录吗？`, async () => {
+        const res = await fetchPost('/skincare/delete', { ProductID: id });
+        if (res.code === 0) {
+          showToast('删除成功', 'success');
+          loadData(currentPage);
+        } else {
+          showToast(res.msg || '操作失败', 'error');
+        }
+      });
+    }
+
+    initPage('skincare', ['护肤品管理', '产品信息管理']);
+    loadData(1);
+  </script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推荐记录管理 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">推荐记录管理</span>
+          <span class="page-desc">CRUD 2 - 对应表：Recommendation（含推荐评分字段）</span>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增推荐</button>
+            <a href="recommend-detail.html" class="btn btn-default">查看推荐详情查询</a>
+          </div>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>推荐类型：</label>
+            <select class="form-select" id="searchType">
+              <option value="">全部</option>
+              <option value="风格">风格</option>
+              <option value="护肤品">护肤品</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>状态：</label>
+            <select class="form-select" id="searchStatus">
+              <option value="">全部</option>
+              <option value="已采纳">已采纳</option>
+              <option value="未采纳">未采纳</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>用户：</label>
+            <input type="text" class="form-input" id="searchUser" placeholder="请输入用户名">
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>推荐ID</th>
+                <th>用户</th>
+                <th>推荐类型</th>
+                <th>推荐理由</th>
+                <th>状态</th>
+                <th>推荐评分</th>
+                <th>推荐时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    let total = 0;
+    let currentList = [];
+
+    const mockData = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        type: document.getElementById('searchType').value,
+        status: document.getElementById('searchStatus').value,
+        user: document.getElementById('searchUser').value,
+      };
+      const res = await fetchGet('/recommend/page', params);
+      if (res.code === 0) {
+        currentList = res.data.list || [];
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(8);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.RecommendID}</td>
+          <td>${escapeHTML(row.UserName)}</td>
+          <td><span class="tag tag-info">${escapeHTML(row.RecommendType)}</span></td>
+          <td>${escapeHTML(row.RecommendReason)}</td>
+          <td><span class="tag ${row.Status === '已采纳' ? 'tag-success' : 'tag-default'}">${row.Status}</span></td>
+          <td>${renderRating(row.RecommendScore)}</td>
+          <td>${formatDate(row.RecommendTime)}</td>
+          <td class="col-actions">
+            <button class="btn-link" onclick="showEditModal(${row.RecommendID})">修改</button>
+            <button class="btn-link danger" onclick="deleteRecommend(${row.RecommendID})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchType').value = '';
+      document.getElementById('searchStatus').value = '';
+      document.getElementById('searchUser').value = '';
+      loadData(1);
+    }
+
+    function showAddModal() {
+      const bodyHTML = `
+        <div class="form-row">
+          <div class="form-group">
+            <label>用户ID <span class="required">*</span></label>
+            <input type="number" class="form-input" id="formUserId" placeholder="请输入用户ID">
+          </div>
+          <div class="form-group">
+            <label>推荐类型 <span class="required">*</span></label>
+            <select class="form-select" id="formType">
+              <option value="风格">风格</option>
+              <option value="护肤品">护肤品</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>推荐理由 <span class="required">*</span></label>
+          <textarea class="form-textarea" id="formReason" placeholder="请输入推荐理由"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>状态</label>
+            <select class="form-select" id="formStatus">
+              <option value="已采纳">已采纳</option>
+              <option value="未采纳">未采纳</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>推荐评分（评优新增字段）</label>
+            <select class="form-select" id="formScore">
+              <option value="">未评分</option>
+              <option value="5">★★★★★ 5分</option>
+              <option value="4">★★★★ 4分</option>
+              <option value="3">★★★ 3分</option>
+              <option value="2">★★ 2分</option>
+              <option value="1">★ 1分</option>
+            </select>
+          </div>
+        </div>
+      `;
+      showModal('新增推荐', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAdd()">确定新增</button>
+      `);
+    }
+
+    async function submitAdd() {
+      const data = {
+        UserID: document.getElementById('formUserId').value,
+        RecommendType: document.getElementById('formType').value,
+        RecommendReason: document.getElementById('formReason').value,
+        Status: document.getElementById('formStatus').value,
+        RecommendScore: document.getElementById('formScore').value || null,
+      };
+      if (!data.UserID || !data.RecommendReason) {
+        showToast('请填写必填项', 'warning');
+        return;
+      }
+      const res = await fetchPost('/recommend/add', data);
+      if (res.code === 0) {
+        showToast('新增成功', 'success');
+        closeModal();
+        loadData(1);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function showEditModal(id) {
+      const row = currentList.find(r => r.RecommendID === id);
+      if (!row) return;
+      const bodyHTML = `
+        <div class="form-row">
+          <div class="form-group">
+            <label>推荐ID</label>
+            <input type="text" class="form-input" value="${id}" disabled>
+          </div>
+          <div class="form-group">
+            <label>用户</label>
+            <input type="text" class="form-input" id="formUserName" value="${escapeHTML(row.UserName)}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>推荐类型 <span class="required">*</span></label>
+          <select class="form-select" id="formType">
+            <option value="风格" ${row.RecommendType === '风格' ? 'selected' : ''}>风格</option>
+            <option value="护肤品" ${row.RecommendType === '护肤品' ? 'selected' : ''}>护肤品</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>推荐理由 <span class="required">*</span></label>
+          <textarea class="form-textarea" id="formReason">${escapeHTML(row.RecommendReason)}</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>状态</label>
+            <select class="form-select" id="formStatus">
+              <option value="已采纳" ${row.Status === '已采纳' ? 'selected' : ''}>已采纳</option>
+              <option value="未采纳" ${row.Status === '未采纳' ? 'selected' : ''}>未采纳</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>推荐评分（评优新增字段）</label>
+            <select class="form-select" id="formScore">
+              <option value="" ${row.RecommendScore == null ? 'selected' : ''}>未评分</option>
+              <option value="5" ${row.RecommendScore == 5 ? 'selected' : ''}>★★★★★ 5分</option>
+              <option value="4" ${row.RecommendScore == 4 ? 'selected' : ''}>★★★★ 4分</option>
+              <option value="3" ${row.RecommendScore == 3 ? 'selected' : ''}>★★★ 3分</option>
+              <option value="2" ${row.RecommendScore == 2 ? 'selected' : ''}>★★ 2分</option>
+              <option value="1" ${row.RecommendScore == 1 ? 'selected' : ''}>★ 1分</option>
+            </select>
+          </div>
+        </div>
+      `;
+      showModal('修改推荐信息', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitEdit(${id})">保存修改</button>
+      `);
+    }
+
+    async function submitEdit(id) {
+      const data = {
+        RecommendID: id,
+        UserName: document.getElementById('formUserName').value,
+        RecommendType: document.getElementById('formType').value,
+        RecommendReason: document.getElementById('formReason').value,
+        Status: document.getElementById('formStatus').value,
+        RecommendScore: document.getElementById('formScore').value || null,
+      };
+      if (!data.RecommendReason) {
+        showToast('推荐理由不能为空', 'warning');
+        return;
+      }
+      const res = await fetchPost('/recommend/update', data);
+      if (res.code === 0) {
+        showToast('修改成功', 'success');
+        closeModal();
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function deleteRecommend(id) {
+      confirmDialog(`确定要删除推荐ID为 ${id} 的记录吗？`, async () => {
+        const res = await fetchPost('/recommend/delete', { RecommendID: id });
+        if (res.code === 0) {
+          showToast('删除成功', 'success');
+          loadData(currentPage);
+        } else {
+          showToast(res.msg || '操作失败', 'error');
+        }
+      });
+    }
+
+    initPage('recommend', ['推荐管理', '推荐记录管理']);
+    loadData(1);
+  </script>
+</body>
+</html>

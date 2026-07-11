@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>风格标签管理 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">风格标签管理</span>
+          <span class="page-desc">CRUD 4 - 对应表：Style</span>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增风格</button>
+          </div>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>风格名称：</label>
+            <input type="text" class="form-input" id="searchName" placeholder="如：韩系风">
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>风格ID</th>
+                <th>风格名称</th>
+                <th>风格描述</th>
+                <th>使用次数</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    let total = 0;
+    let currentList = [];
+
+    const mockData = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        name: document.getElementById('searchName').value,
+      };
+      const res = await fetchGet('/style/list', params);
+      if (res.code === 0) {
+        currentList = res.data.list || [];
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(6);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.StyleID}</td>
+          <td><span class="tag tag-primary">${escapeHTML(row.StyleName)}</span></td>
+          <td class="text-muted">${escapeHTML(row.Description)}</td>
+          <td>${row.UseCount} 次</td>
+          <td>${formatDate(row.CreateTime)}</td>
+          <td class="col-actions">
+            <button class="btn-link" onclick="showEditModal(${row.StyleID})">修改</button>
+            <button class="btn-link danger" onclick="deleteStyle(${row.StyleID})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchName').value = '';
+      loadData(1);
+    }
+
+    function showAddModal() {
+      const bodyHTML = `
+        <div class="form-group">
+          <label>风格名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formName" placeholder="如：韩系风">
+        </div>
+        <div class="form-group">
+          <label>风格描述</label>
+          <textarea class="form-textarea" id="formDesc" placeholder="请输入风格描述"></textarea>
+        </div>
+      `;
+      showModal('新增风格标签', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitAdd()">确定新增</button>
+      `);
+    }
+
+    async function submitAdd() {
+      const data = {
+        StyleName: document.getElementById('formName').value,
+        Description: document.getElementById('formDesc').value,
+      };
+      if (!data.StyleName) {
+        showToast('风格名称不能为空', 'warning');
+        return;
+      }
+      const res = await fetchPost('/style/add', data);
+      if (res.code === 0) {
+        showToast('新增成功', 'success');
+        closeModal();
+        loadData(1);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function showEditModal(id) {
+      const row = currentList.find(r => r.StyleID === id);
+      if (!row) return;
+      const bodyHTML = `
+        <div class="form-group">
+          <label>风格ID</label>
+          <input type="text" class="form-input" value="${id}" disabled>
+        </div>
+        <div class="form-group">
+          <label>风格名称 <span class="required">*</span></label>
+          <input type="text" class="form-input" id="formName" value="${escapeHTML(row.StyleName)}">
+        </div>
+        <div class="form-group">
+          <label>风格描述</label>
+          <textarea class="form-textarea" id="formDesc">${escapeHTML(row.Description)}</textarea>
+        </div>
+      `;
+      showModal('修改风格标签', bodyHTML, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitEdit(${id})">保存修改</button>
+      `);
+    }
+
+    async function submitEdit(id) {
+      const data = {
+        StyleID: id,
+        StyleName: document.getElementById('formName').value,
+        Description: document.getElementById('formDesc').value,
+      };
+      if (!data.StyleName) {
+        showToast('风格名称不能为空', 'warning');
+        return;
+      }
+      const res = await fetchPost('/style/update', data);
+      if (res.code === 0) {
+        showToast('修改成功', 'success');
+        closeModal();
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    function deleteStyle(id) {
+      confirmDialog(`确定要删除风格ID为 ${id} 的标签吗？`, async () => {
+        const res = await fetchPost('/style/delete', { StyleID: id });
+        if (res.code === 0) {
+          showToast('删除成功', 'success');
+          loadData(currentPage);
+        } else {
+          showToast(res.msg || '操作失败', 'error');
+        }
+      });
+    }
+
+    initPage('style', ['风格管理']);
+    loadData(1);
+  </script>
+</body>
+</html>

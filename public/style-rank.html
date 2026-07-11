@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>风格匹配排行 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">风格匹配排行</span>
+          <span class="page-desc">复杂查询 4 - 统计查询：AnalysisResult + StyleMatch</span>
+        </div>
+
+        <!-- 查询条件 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>时间范围：</label>
+            <select class="form-select" id="searchRange">
+              <option value="7">近7天</option>
+              <option value="30">近30天</option>
+              <option value="90">近3个月</option>
+              <option value="">全部</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>排序方式：</label>
+            <select class="form-select" id="searchOrder">
+              <option value="DESC">匹配次数 ↓</option>
+              <option value="ASC">匹配次数 ↑</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData()">查询</button>
+          </div>
+        </div>
+
+        <!-- 图表 -->
+        <div class="chart-container">
+          <div class="panel-title">风格匹配次数排行</div>
+          <div class="bar-chart" id="rankChart"></div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>风格名称</th>
+                <th>匹配次数</th>
+                <th>平均匹配分</th>
+                <th>最高匹配分</th>
+                <th>占比</th>
+                <th>趋势</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    async function loadData() {
+      const params = {
+        range: document.getElementById('searchRange').value,
+        order: document.getElementById('searchOrder').value,
+      };
+      const res = await fetchGet('/style/rank', params);
+      if (res.code === 0) {
+        renderChart(res.data || []);
+        renderTable(res.data || []);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderChart([]);
+        renderTable([]);
+      }
+    }
+
+    function renderChart(data) {
+      const chart = document.getElementById('rankChart');
+      const maxVal = Math.max(...data.map(d => d.MatchCount), 1);
+      chart.innerHTML = data.map(d => {
+        const height = (d.MatchCount / maxVal * 100).toFixed(0);
+        return `
+          <div class="bar-item">
+            <div class="bar-value">${d.MatchCount}</div>
+            <div class="bar" style="height:${height}%;"></div>
+            <div class="bar-label">${escapeHTML(d.StyleName)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      if (!data.length) {
+        tbody.innerHTML = emptyRow(7);
+        return;
+      }
+      const total = data.reduce((s, d) => s + d.MatchCount, 0);
+      tbody.innerHTML = data.map((row, i) => {
+        const rankClass = i === 0 ? 'tag-danger' : i === 1 ? 'tag-warning' : i === 2 ? 'tag-info' : 'tag-default';
+        const trend = row.AvgScore > 88 ? '<span class="text-success">↑ 热门</span>' : '<span class="text-muted">— 平稳</span>';
+        return `
+          <tr>
+            <td><span class="tag ${rankClass}" style="min-width:24px;text-align:center;">${i + 1}</span></td>
+            <td class="text-bold">${escapeHTML(row.StyleName)}</td>
+            <td class="text-bold">${row.MatchCount} 次</td>
+            <td>${row.AvgScore.toFixed(1)} 分</td>
+            <td>${row.MaxScore} 分</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:80px;height:8px;background:var(--border-light);border-radius:4px;overflow:hidden;">
+                  <div style="width:${row.Percentage}%;height:100%;background:var(--primary);"></div>
+                </div>
+                <span class="text-sm">${row.Percentage}%</span>
+              </div>
+            </td>
+            <td>${trend}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    initPage('style-rank', ['AI分析管理', '风格匹配排行']);
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>操作日志统计 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">操作日志统计</span>
+          <span class="page-desc">复杂查询 5 - 多表联查：Admin + Log</span>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📝</div>
+            <div class="stat-info">
+              <div class="stat-label">总操作数</div>
+              <div class="stat-value" id="statTotal">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✓</div>
+            <div class="stat-info">
+              <div class="stat-label">今日操作</div>
+              <div class="stat-value" id="statToday">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">👥</div>
+            <div class="stat-info">
+              <div class="stat-label">成功操作</div>
+              <div class="stat-value" id="statSuccess">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pink">⏰</div>
+            <div class="stat-info">
+              <div class="stat-label">失败操作</div>
+              <div class="stat-value" id="statFail">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 查询条件 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>管理员：</label>
+            <input type="text" class="form-input" id="searchAdmin" placeholder="请输入管理员姓名">
+          </div>
+          <div class="search-item">
+            <label>操作类型：</label>
+            <select class="form-select" id="searchOp">
+              <option value="">全部</option>
+              <option value="新增">新增</option>
+              <option value="修改">修改</option>
+              <option value="删除">删除</option>
+              <option value="查询">查询</option>
+              <option value="登录">登录</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>日期：</label>
+            <input type="date" class="form-input" id="searchDate">
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 管理员操作统计图表 -->
+        <div class="chart-container">
+          <div class="panel-title">各管理员操作次数统计</div>
+          <div class="bar-chart" id="adminChart"></div>
+        </div>
+
+        <!-- 日志表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>日志ID</th>
+                <th>管理员姓名</th>
+                <th>操作类型</th>
+                <th>操作内容</th>
+                <th>操作时间</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+
+    // 管理员操作统计（由 /log/stats 接口动态填充）
+    let adminStats = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        admin: document.getElementById('searchAdmin').value,
+        op: document.getElementById('searchOp').value,
+        date: document.getElementById('searchDate').value,
+      };
+      const res = await fetchGet('/log/page', params);
+      if (res.code === 0) {
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+      loadStats();
+    }
+
+    async function loadStats() {
+      const res = await fetchGet('/log/stats');
+      if (res.code === 0) {
+        const s = res.data || {};
+        document.getElementById('statTotal').textContent = s.total ?? 0;
+        document.getElementById('statToday').textContent = s.today ?? 0;
+        document.getElementById('statSuccess').textContent = s.success ?? 0;
+        document.getElementById('statFail').textContent = s.fail ?? 0;
+        adminStats = s.adminStats || [];
+      } else {
+        adminStats = [];
+      }
+      renderAdminChart();
+    }
+
+    function renderTable(list, total) {
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(5);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      const opColors = { '新增': 'tag-success', '修改': 'tag-warning', '删除': 'tag-danger', '查询': 'tag-info', '登录': 'tag-primary' };
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.LogID}</td>
+          <td>${escapeHTML(row.AdminName)}</td>
+          <td><span class="tag ${opColors[row.OperationType] || 'tag-default'}">${escapeHTML(row.OperationType)}</span></td>
+          <td>${escapeHTML(row.OperationContent)}</td>
+          <td>${formatDate(row.OperationTime)}</td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function renderAdminChart() {
+      const chart = document.getElementById('adminChart');
+      const maxVal = Math.max(...adminStats.map(d => d.Count), 1);
+      chart.innerHTML = adminStats.map(d => {
+        const height = (d.Count / maxVal * 100).toFixed(0);
+        return `
+          <div class="bar-item">
+            <div class="bar-value">${d.Count}</div>
+            <div class="bar" style="height:${height}%;"></div>
+            <div class="bar-label">${escapeHTML(d.AdminName)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function resetSearch() {
+      document.getElementById('searchAdmin').value = '';
+      document.getElementById('searchOp').value = '';
+      document.getElementById('searchDate').value = '';
+      loadData(1);
+    }
+
+    initPage('log', ['系统管理', '操作日志统计']);
+    loadData(1);
+  </script>
+</body>
+</html>

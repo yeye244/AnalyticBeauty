@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分析结果查询 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">AI分析结果查询</span>
+          <span class="page-desc">复杂查询 1 - 多表联查：User + Photo + AnalysisResult</span>
+        </div>
+
+        <!-- 查询条件 -->
+        <div class="search-bar">
+          <div class="search-item">
+            <label>用户昵称：</label>
+            <input type="text" class="form-input" id="searchUser" placeholder="请输入用户昵称">
+          </div>
+          <div class="search-item">
+            <label>肤色：</label>
+            <select class="form-select" id="searchSkinTone">
+              <option value="">全部</option>
+              <option value="白皙">白皙</option>
+              <option value="自然">自然</option>
+              <option value="偏黄">偏黄</option>
+              <option value="小麦">小麦</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>脸型：</label>
+            <select class="form-select" id="searchFaceShape">
+              <option value="">全部</option>
+              <option value="圆脸">圆脸</option>
+              <option value="方脸">方脸</option>
+              <option value="瓜子脸">瓜子脸</option>
+              <option value="鹅蛋脸">鹅蛋脸</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>排序：</label>
+            <select class="form-select" id="searchOrder">
+              <option value="DESC">分析时间 ↓</option>
+              <option value="ASC">分析时间 ↑</option>
+            </select>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>分析ID</th>
+                <th>用户昵称</th>
+                <th>照片</th>
+                <th>肤色</th>
+                <th>脸型</th>
+                <th>体型</th>
+                <th>分析时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    // 当前已加载数据（用于详情查看）
+    let currentList = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = {
+        page, pageSize,
+        user: document.getElementById('searchUser').value,
+        skinTone: document.getElementById('searchSkinTone').value,
+        faceShape: document.getElementById('searchFaceShape').value,
+        order: document.getElementById('searchOrder').value,
+      };
+      const res = await fetchGet('/analysis/list', params);
+      if (res.code === 0) {
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, total) {
+      currentList = list;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(8);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.AnalysisID}</td>
+          <td class="text-bold">${escapeHTML(row.UserName)}</td>
+          <td><div class="thumb-placeholder">查看</div></td>
+          <td><span class="tag tag-primary">${escapeHTML(row.SkinTone)}</span></td>
+          <td>${escapeHTML(row.FaceShape)}</td>
+          <td>${escapeHTML(row.BodyShape)}</td>
+          <td>${formatDate(row.AnalysisTime)}</td>
+          <td><button class="btn-link" onclick="showDetail(${row.AnalysisID})">详情</button></td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    function showDetail(id) {
+      const row = currentList.find(r => r.AnalysisID === id);
+      if (!row) return;
+      const bodyHTML = `
+        <div class="desc-list">
+          <div class="desc-item"><span class="desc-label">分析ID</span><span class="desc-value">${row.AnalysisID}</span></div>
+          <div class="desc-item"><span class="desc-label">用户昵称</span><span class="desc-value">${escapeHTML(row.UserName)}</span></div>
+          <div class="desc-item"><span class="desc-label">照片地址</span><span class="desc-value">${escapeHTML(row.PhotoURL)}</span></div>
+          <div class="desc-item"><span class="desc-label">分析时间</span><span class="desc-value">${formatDate(row.AnalysisTime)}</span></div>
+          <div class="desc-item"><span class="desc-label">肤色</span><span class="desc-value">${escapeHTML(row.SkinTone)}</span></div>
+          <div class="desc-item"><span class="desc-label">脸型</span><span class="desc-value">${escapeHTML(row.FaceShape)}</span></div>
+          <div class="desc-item"><span class="desc-label">体型</span><span class="desc-value">${escapeHTML(row.BodyShape)}</span></div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:4px;font-size:13px;color:var(--text-3);">
+          <strong>SQL来源：</strong>SELECT a.*, u.UserName, p.ImageURL FROM AnalysisResult a LEFT JOIN User u ON a.UserID = u.UserID LEFT JOIN Photo p ON a.PhotoID = p.PhotoID
+        </div>
+      `;
+      showModal('分析结果详情', bodyHTML, `<button class="btn btn-default" onclick="closeModal()">关闭</button>`);
+    }
+
+    function resetSearch() {
+      document.getElementById('searchUser').value = '';
+      document.getElementById('searchSkinTone').value = '';
+      document.getElementById('searchFaceShape').value = '';
+      document.getElementById('searchOrder').value = 'DESC';
+      loadData(1);
+    }
+
+    initPage('analysis', ['AI分析管理', '分析结果查询']);
+    loadData(1);
+  </script>
+</body>
+</html>
