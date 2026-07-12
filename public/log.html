@@ -14,7 +14,6 @@
       <main class="content">
         <div class="page-header">
           <span class="page-title">操作日志统计</span>
-          <span class="page-desc">复杂查询 5 - 多表联查：Admin + Log</span>
         </div>
 
         <!-- 统计卡片 -->
@@ -165,12 +164,12 @@
 
     function renderAdminChart() {
       const chart = document.getElementById('adminChart');
-      const maxVal = Math.max(...adminStats.map(d => d.Count), 1);
+      const maxVal = Math.max(...adminStats.map(d => d.Cnt), 1);
       chart.innerHTML = adminStats.map(d => {
-        const height = (d.Count / maxVal * 100).toFixed(0);
+        const height = (d.Cnt / maxVal * 100).toFixed(0);
         return `
           <div class="bar-item">
-            <div class="bar-value">${d.Count}</div>
+            <div class="bar-value">${d.Cnt}</div>
             <div class="bar" style="height:${height}%;"></div>
             <div class="bar-label">${escapeHTML(d.AdminName)}</div>
           </div>

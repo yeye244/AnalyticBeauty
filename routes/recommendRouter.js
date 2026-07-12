@@ -36,35 +36,50 @@ recommendRouter.get("/recommend/page", function (req, res) {
 });
 
 recommendRouter.post("/recommend/add", function (req, res) {
-    const { UserID, RecommendType, RecommendReason, Status = '未采纳', RecommendScore = null } = req.body;
+    const { UserID, RecommendType, RecommendReason, Status = '未采纳', RecommendScore = null, adminId } = req.body;
     if (!UserID || !RecommendType || !RecommendReason) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     const isAccepted = Status === '已采纳' ? 1 : 0;
     let sql = `INSERT INTO recommendation (Rec_UserID, Rec_AnalysisID, RecommendationType, RecommendationReason, IsAccepted) 
                VALUES (?, 1, ?, ?, ?)`;
     DB.connect(sql, [+UserID, RecommendType, RecommendReason, isAccepted], (err, result) => {
-        if (err) { res.json({ code: 5000, msg: '新增失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '新增', 'recommendation', `新增推荐失败: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '新增失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '新增', 'recommendation', `新增推荐，ID: ${result.insertId}，类型: ${RecommendType}`, '成功');
         res.json({ code: 0, msg: '新增成功', data: { id: result.insertId } });
     });
 });
 
 recommendRouter.post("/recommend/update", function (req, res) {
-    const { RecommendID, RecommendType, RecommendReason, Status, RecommendScore } = req.body;
+    const { RecommendID, RecommendType, RecommendReason, Status, RecommendScore, adminId } = req.body;
     if (!RecommendID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     const isAccepted = Status === '已采纳' ? 1 : 0;
     let sql = `UPDATE recommendation SET RecommendationType = ?, RecommendationReason = ?, IsAccepted = ? 
                WHERE RecommendationID = ?`;
     DB.connect(sql, [RecommendType, RecommendReason, isAccepted, +RecommendID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '修改失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '修改', 'recommendation', `修改推荐失败，ID: ${RecommendID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '修改失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '修改', 'recommendation', `修改推荐，ID: ${RecommendID}`, '成功');
         res.json({ code: 0, msg: '修改成功', data: null });
     });
 });
 
 recommendRouter.post("/recommend/delete", function (req, res) {
-    const { RecommendID } = req.body;
+    const { RecommendID, adminId } = req.body;
     if (!RecommendID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'DELETE FROM recommendation WHERE RecommendationID = ?';
     DB.connect(sql, [+RecommendID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '删除失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '删除', 'recommendation', `删除推荐失败，ID: ${RecommendID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '删除失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '删除', 'recommendation', `删除推荐，ID: ${RecommendID}`, '成功');
         res.json({ code: 0, msg: '删除成功', data: null });
     });
 });

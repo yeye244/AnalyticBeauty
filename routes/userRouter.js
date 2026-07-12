@@ -17,6 +17,7 @@ userRouter.route("/user/login")
         DB.connect(sql, [username, md5(password)], (err, data) => {
             if (!err && data && data.length === 1) {
                 DB.connect('UPDATE admin SET LastLoginTime = NOW() WHERE AdminID = ?', [data[0].AdminID], () => {});
+                DB.log(data[0].AdminID, '登录', 'admin', `管理员 ${data[0].AdminName} 登录系统`, '成功');
                 res.json({ code: 0, msg: '登录成功', data: { uid: data[0].AdminID, uname: data[0].AdminName, uaccess: data[0].AdminName, role: data[0].AdminRole } });
             } else {
                 res.json({ code: 4001, msg: '账号或密码错误', data: {} });
@@ -29,6 +30,7 @@ userRouter.route("/user/login")
         DB.connect(sql, [username, md5(password)], (err, data) => {
             if (!err && data && data.length === 1) {
                 DB.connect('UPDATE admin SET LastLoginTime = NOW() WHERE AdminID = ?', [data[0].AdminID], () => {});
+                DB.log(data[0].AdminID, '登录', 'admin', `管理员 ${data[0].AdminName} 登录系统`, '成功');
                 res.json({ code: 0, msg: '登录成功', data: { uid: data[0].AdminID, uname: data[0].AdminName, uaccess: data[0].AdminName, role: data[0].AdminRole } });
             } else {
                 res.json({ code: 4001, msg: '账号或密码错误', data: {} });

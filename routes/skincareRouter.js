@@ -30,31 +30,46 @@ skincareRouter.get("/skincare/page", function (req, res) {
 });
 
 skincareRouter.post("/skincare/add", function (req, res) {
-    const { ProductName, Brand, Price, Effect = '补水', SkinType = '所有肤质' } = req.body;
+    const { ProductName, Brand, Price, Effect = '补水', SkinType = '所有肤质', adminId } = req.body;
     if (!ProductName || !Brand || !Price) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'INSERT INTO skincareproduct (ProductName, Brand, Category, Price) VALUES (?, ?, ?, ?)';
     DB.connect(sql, [ProductName, Brand, Effect, +Price], (err, result) => {
-        if (err) { res.json({ code: 5000, msg: '新增失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '新增', 'skincareproduct', `新增产品失败: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '新增失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '新增', 'skincareproduct', `新增产品，ID: ${result.insertId}，名称: ${ProductName}`, '成功');
         res.json({ code: 0, msg: '新增成功', data: { id: result.insertId } });
     });
 });
 
 skincareRouter.post("/skincare/update", function (req, res) {
-    const { ProductID, ProductName, Brand, Price, Effect } = req.body;
+    const { ProductID, ProductName, Brand, Price, Effect, adminId } = req.body;
     if (!ProductID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'UPDATE skincareproduct SET ProductName = ?, Brand = ?, Category = ?, Price = ? WHERE ProductID = ?';
     DB.connect(sql, [ProductName, Brand, Effect, +Price, +ProductID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '修改失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '修改', 'skincareproduct', `修改产品失败，ID: ${ProductID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '修改失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '修改', 'skincareproduct', `修改产品，ID: ${ProductID}`, '成功');
         res.json({ code: 0, msg: '修改成功', data: null });
     });
 });
 
 skincareRouter.post("/skincare/delete", function (req, res) {
-    const { ProductID } = req.body;
+    const { ProductID, adminId } = req.body;
     if (!ProductID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'DELETE FROM skincareproduct WHERE ProductID = ?';
     DB.connect(sql, [+ProductID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '删除失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '删除', 'skincareproduct', `删除产品失败，ID: ${ProductID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '删除失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '删除', 'skincareproduct', `删除产品，ID: ${ProductID}`, '成功');
         res.json({ code: 0, msg: '删除成功', data: null });
     });
 });

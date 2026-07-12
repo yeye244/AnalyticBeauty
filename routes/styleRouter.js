@@ -29,31 +29,46 @@ styleRouter.get("/style/list", function (req, res) {
 });
 
 styleRouter.post("/style/add", function (req, res) {
-    const { StyleName, Description = '' } = req.body;
+    const { StyleName, Description = '', adminId } = req.body;
     if (!StyleName) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'INSERT INTO style (StyleName) VALUES (?)';
     DB.connect(sql, [StyleName], (err, result) => {
-        if (err) { res.json({ code: 5000, msg: '新增失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '新增', 'style', `新增风格失败: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '新增失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '新增', 'style', `新增风格，ID: ${result.insertId}，名称: ${StyleName}`, '成功');
         res.json({ code: 0, msg: '新增成功', data: { id: result.insertId } });
     });
 });
 
 styleRouter.post("/style/update", function (req, res) {
-    const { StyleID, StyleName } = req.body;
+    const { StyleID, StyleName, adminId } = req.body;
     if (!StyleID || !StyleName) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'UPDATE style SET StyleName = ? WHERE StyleID = ?';
     DB.connect(sql, [StyleName, +StyleID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '修改失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '修改', 'style', `修改风格失败，ID: ${StyleID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '修改失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '修改', 'style', `修改风格，ID: ${StyleID}，名称: ${StyleName}`, '成功');
         res.json({ code: 0, msg: '修改成功', data: null });
     });
 });
 
 styleRouter.post("/style/delete", function (req, res) {
-    const { StyleID } = req.body;
+    const { StyleID, adminId } = req.body;
     if (!StyleID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'DELETE FROM style WHERE StyleID = ?';
     DB.connect(sql, [+StyleID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '删除失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '删除', 'style', `删除风格失败，ID: ${StyleID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '删除失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '删除', 'style', `删除风格，ID: ${StyleID}`, '成功');
         res.json({ code: 0, msg: '删除成功', data: null });
     });
 });

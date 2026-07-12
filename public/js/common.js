@@ -9,25 +9,25 @@ const MENU_CONFIG = [
   ]},
   { group: '业务管理', items: [
     { key: 'user', title: '用户管理', icon: '👤', href: 'user.html' },
-    { key: 'photo', title: '照片管理', icon: '📷', href: 'photo.html', badge: 'CRUD' },
+    { key: 'photo', title: '照片管理', icon: '📷', href: 'photo.html' },
     { key: 'analysis-group', title: 'AI分析管理', icon: '📊', children: [
-      { key: 'analysis', title: '分析结果查询', href: 'analysis.html', badge: '复杂查询' },
-      { key: 'style-rank', title: '风格匹配排行', href: 'style-rank.html', badge: '复杂查询' },
+      { key: 'analysis', title: '分析结果查询', href: 'analysis.html' },
+      { key: 'style-rank', title: '风格匹配排行', href: 'style-rank.html' },
     ]},
     { key: 'recommend-group', title: '推荐管理', icon: '💡', children: [
-      { key: 'recommend', title: '推荐记录管理', href: 'recommend.html', badge: 'CRUD' },
-      { key: 'recommend-detail', title: '推荐详情查询', href: 'recommend-detail.html', badge: '复杂查询' },
+      { key: 'recommend', title: '推荐记录管理', href: 'recommend.html' },
+      { key: 'recommend-detail', title: '推荐详情查询', href: 'recommend-detail.html' },
     ]},
     { key: 'skincare-group', title: '护肤品管理', icon: '🧴', children: [
-      { key: 'skincare', title: '产品信息管理', href: 'skincare.html', badge: 'CRUD' },
-      { key: 'bundle-detail', title: '套装详情查询', href: 'bundle-detail.html', badge: '复杂查询' },
+      { key: 'skincare', title: '产品信息管理', href: 'skincare.html' },
+      { key: 'bundle-detail', title: '套装详情查询', href: 'bundle-detail.html' },
     ]},
-    { key: 'style', title: '风格管理', icon: '🎨', href: 'style.html', badge: 'CRUD' },
+    { key: 'style', title: '风格管理', icon: '🎨', href: 'style.html' },
   ]},
   { group: '系统管理', items: [
     { key: 'admin-group', title: '系统管理', icon: '⚙️', children: [
-      { key: 'admin', title: '管理员管理', href: 'admin.html', badge: 'CRUD' },
-      { key: 'log', title: '操作日志统计', href: 'log.html', badge: '复杂查询' },
+      { key: 'admin', title: '管理员管理', href: 'admin.html' },
+      { key: 'log', title: '操作日志统计', href: 'log.html' },
     ]},
     { key: 'exercise', title: '运动管理', icon: '🏃', href: 'exercise.html' },
   ]},
@@ -139,9 +139,12 @@ async function fetchAPI(url, options = {}) {
       headers: { 'Content-Type': 'application/json' },
     };
     const opts = { ...defaultOpts, ...options };
+    const adminId = sessionStorage.getItem('adminId');
+    
     if (opts.body && typeof opts.body === 'object') {
-      opts.body = JSON.stringify(opts.body);
+      opts.body = JSON.stringify({ ...opts.body, adminId });
     }
+    
     const res = await fetch(url, opts);
     const data = await res.json();
     return data;

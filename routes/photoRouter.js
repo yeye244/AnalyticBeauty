@@ -27,31 +27,46 @@ photoRouter.get("/photo/page", function (req, res) {
 });
 
 photoRouter.post("/photo/add", function (req, res) {
-    const { UserID, ImageURL, Status = '未分析' } = req.body;
+    const { UserID, ImageURL, Status = '未分析', adminId } = req.body;
     if (!UserID || !ImageURL) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'INSERT INTO photo (Photo_UserID, PhotoURL, AnalysisStatus) VALUES (?, ?, ?)';
     DB.connect(sql, [+UserID, ImageURL, Status], (err, result) => {
-        if (err) { res.json({ code: 5000, msg: '新增失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '新增', 'photo', `新增照片失败: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '新增失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '新增', 'photo', `新增照片，ID: ${result.insertId}，用户ID: ${UserID}`, '成功');
         res.json({ code: 0, msg: '新增成功', data: { id: result.insertId } });
     });
 });
 
 photoRouter.post("/photo/update", function (req, res) {
-    const { PhotoID, ImageURL, Status } = req.body;
+    const { PhotoID, ImageURL, Status, adminId } = req.body;
     if (!PhotoID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'UPDATE photo SET PhotoURL = ?, AnalysisStatus = ? WHERE PhotoID = ?';
     DB.connect(sql, [ImageURL, Status, +PhotoID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '修改失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '修改', 'photo', `修改照片失败，ID: ${PhotoID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '修改失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '修改', 'photo', `修改照片，ID: ${PhotoID}`, '成功');
         res.json({ code: 0, msg: '修改成功', data: null });
     });
 });
 
 photoRouter.post("/photo/delete", function (req, res) {
-    const { PhotoID } = req.body;
+    const { PhotoID, adminId } = req.body;
     if (!PhotoID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'DELETE FROM photo WHERE PhotoID = ?';
     DB.connect(sql, [+PhotoID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '删除失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '删除', 'photo', `删除照片失败，ID: ${PhotoID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '删除失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '删除', 'photo', `删除照片，ID: ${PhotoID}`, '成功');
         res.json({ code: 0, msg: '删除成功', data: null });
     });
 });

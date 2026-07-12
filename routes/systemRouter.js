@@ -35,17 +35,22 @@ systemRouter.get("/admin/page", function (req, res) {
 });
 
 systemRouter.post("/admin/add", function (req, res) {
-    const { AdminAccount, AdminPassword, Role = '普通管理员' } = req.body;
+    const { AdminAccount, AdminPassword, Role = '普通管理员', adminId } = req.body;
     if (!AdminAccount || !AdminPassword) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'INSERT INTO admin (AdminName, AdminPWD, AdminRole) VALUES (?, ?, ?)';
     DB.connect(sql, [AdminAccount, AdminPassword, Role], (err, result) => {
-        if (err) { res.json({ code: 5000, msg: '新增失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '新增', 'admin', `新增管理员失败: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '新增失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '新增', 'admin', `新增管理员，ID: ${result.insertId}，账号: ${AdminAccount}，角色: ${Role}`, '成功');
         res.json({ code: 0, msg: '新增成功', data: { id: result.insertId } });
     });
 });
 
 systemRouter.post("/admin/update", function (req, res) {
-    const { AdminID, AdminAccount, AdminPassword, Role } = req.body;
+    const { AdminID, AdminAccount, AdminPassword, Role, adminId } = req.body;
     if (!AdminID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let fields = [];
     let params = [];
@@ -56,17 +61,27 @@ systemRouter.post("/admin/update", function (req, res) {
     params.push(+AdminID);
     let sql = `UPDATE admin SET ${fields.join(', ')} WHERE AdminID = ?`;
     DB.connect(sql, params, (err) => {
-        if (err) { res.json({ code: 5000, msg: '修改失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '修改', 'admin', `修改管理员失败，ID: ${AdminID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '修改失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '修改', 'admin', `修改管理员，ID: ${AdminID}`, '成功');
         res.json({ code: 0, msg: '修改成功', data: null });
     });
 });
 
 systemRouter.post("/admin/delete", function (req, res) {
-    const { AdminID } = req.body;
+    const { AdminID, adminId } = req.body;
     if (!AdminID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let sql = 'DELETE FROM admin WHERE AdminID = ?';
     DB.connect(sql, [+AdminID], (err) => {
-        if (err) { res.json({ code: 5000, msg: '删除失败', data: null }); return; }
+        if (err) { 
+            DB.log(adminId || 0, '删除', 'admin', `删除管理员失败，ID: ${AdminID}: ${err.message}`, '失败');
+            res.json({ code: 5000, msg: '删除失败', data: null }); 
+            return; 
+        }
+        DB.log(adminId || 0, '删除', 'admin', `删除管理员，ID: ${AdminID}`, '成功');
         res.json({ code: 0, msg: '删除成功', data: null });
     });
 });

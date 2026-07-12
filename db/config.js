@@ -28,6 +28,18 @@ module.exports = {
 
     conn.end()//关闭链接
 
+  },
+
+  log(adminId, operationType, operationTable, operationContent, operationResult) {
+    // adminId 无效时用 1（钟总管理员）兜底，避免外键约束失败
+    const validAdminId = (!adminId || isNaN(+adminId) || +adminId <= 0) ? 1 : +adminId;
+    const sql = 'INSERT INTO log (Log_AdminID, OperationType, OperationTable, OperationContent, OperationResult) VALUES (?, ?, ?, ?, ?)';
+    const conn = mysql.createConnection(this.config);
+    conn.connect();
+    conn.query(sql, [validAdminId, operationType, operationTable, operationContent, operationResult], (err) => {
+      if (err) console.error('日志记录失败:', err.message);
+    });
+    conn.end();
   }
 
 }
