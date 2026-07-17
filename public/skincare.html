@@ -164,25 +164,24 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>功效</label>
-            <select class="form-select" id="formEffect">
-              <option value="补水">补水</option>
-              <option value="美白">美白</option>
-              <option value="抗老">抗老</option>
-              <option value="控油">控油</option>
-              <option value="修护">修护</option>
-            </select>
+            <label>功效（多选）</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="effect" value="补水"> 补水</label>
+              <label><input type="checkbox" name="effect" value="美白"> 美白</label>
+              <label><input type="checkbox" name="effect" value="抗老"> 抗老</label>
+              <label><input type="checkbox" name="effect" value="控油"> 控油</label>
+              <label><input type="checkbox" name="effect" value="修护"> 修护</label>
+            </div>
           </div>
           <div class="form-group">
-            <label>适用肤质</label>
-            <select class="form-select" id="formSkinType">
-              <option value="所有肤质">所有肤质</option>
-              <option value="干皮">干皮</option>
-              <option value="油皮">油皮</option>
-              <option value="混干">混干</option>
-              <option value="混油">混油</option>
-              <option value="敏感肌">敏感肌</option>
-            </select>
+            <label>适用肤质（多选）</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="skinType" value="干皮"> 干皮</label>
+              <label><input type="checkbox" name="skinType" value="油皮"> 油皮</label>
+              <label><input type="checkbox" name="skinType" value="混干"> 混干</label>
+              <label><input type="checkbox" name="skinType" value="混油"> 混油</label>
+              <label><input type="checkbox" name="skinType" value="敏感肌"> 敏感肌</label>
+            </div>
           </div>
         </div>
       `;
@@ -193,12 +192,14 @@
     }
 
     async function submitAdd() {
+      const effects = Array.from(document.querySelectorAll('input[name="effect"]:checked')).map(cb => cb.value);
+      const skinTypes = Array.from(document.querySelectorAll('input[name="skinType"]:checked')).map(cb => cb.value);
       const data = {
         ProductName: document.getElementById('formName').value,
         Brand: document.getElementById('formBrand').value,
         Price: document.getElementById('formPrice').value,
-        Effect: document.getElementById('formEffect').value,
-        SkinType: document.getElementById('formSkinType').value,
+        Effects: effects,
+        SkinTypes: skinTypes,
       };
       if (!data.ProductName || !data.Brand || !data.Price) {
         showToast('请填写必填项', 'warning');
@@ -238,16 +239,16 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>功效</label>
-            <select class="form-select" id="formEffect">
-              ${['补水','美白','抗老','控油','修护'].map(e => `<option value="${e}" ${row.Effect === e ? 'selected' : ''}>${e}</option>`).join('')}
-            </select>
+            <label>功效（多选）</label>
+            <div class="checkbox-group">
+              ${['补水','美白','抗老','控油','修护'].map(e => `<label><input type="checkbox" name="effect" value="${e}" ${(row.Effect || '').includes(e) ? 'checked' : ''}> ${e}</label>`).join('')}
+            </div>
           </div>
           <div class="form-group">
-            <label>适用肤质</label>
-            <select class="form-select" id="formSkinType">
-              ${['所有肤质','干皮','油皮','混干','混油','敏感肌'].map(s => `<option value="${s}" ${row.SkinType === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
+            <label>适用肤质（多选）</label>
+            <div class="checkbox-group">
+              ${['干皮','油皮','混干','混油','敏感肌'].map(s => `<label><input type="checkbox" name="skinType" value="${s}" ${(row.SkinType || '').includes(s) ? 'checked' : ''}> ${s}</label>`).join('')}
+            </div>
           </div>
         </div>
       `;
@@ -258,13 +259,15 @@
     }
 
     async function submitEdit(id) {
+      const effects = Array.from(document.querySelectorAll('input[name="effect"]:checked')).map(cb => cb.value);
+      const skinTypes = Array.from(document.querySelectorAll('input[name="skinType"]:checked')).map(cb => cb.value);
       const data = {
         ProductID: id,
         ProductName: document.getElementById('formName').value,
         Brand: document.getElementById('formBrand').value,
         Price: document.getElementById('formPrice').value,
-        Effect: document.getElementById('formEffect').value,
-        SkinType: document.getElementById('formSkinType').value,
+        Effects: effects,
+        SkinTypes: skinTypes,
       };
       if (!data.ProductName || !data.Brand || !data.Price) {
         showToast('请填写必填项', 'warning');

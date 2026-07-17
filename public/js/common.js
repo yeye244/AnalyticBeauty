@@ -17,9 +17,11 @@ const MENU_CONFIG = [
     { key: 'recommend-group', title: '推荐管理', icon: '💡', children: [
       { key: 'recommend', title: '推荐记录管理', href: 'recommend.html' },
       { key: 'recommend-detail', title: '推荐详情查询', href: 'recommend-detail.html' },
+      { key: 'recommend-effect', title: '推荐效果分析', href: 'recommend-effect.html' },
     ]},
     { key: 'skincare-group', title: '护肤品管理', icon: '🧴', children: [
       { key: 'skincare', title: '产品信息管理', href: 'skincare.html' },
+      { key: 'bundle', title: '套装管理', href: 'bundle.html' },
       { key: 'bundle-detail', title: '套装详情查询', href: 'bundle-detail.html' },
     ]},
     { key: 'style', title: '风格管理', icon: '🎨', href: 'style.html' },
@@ -29,7 +31,6 @@ const MENU_CONFIG = [
       { key: 'admin', title: '管理员管理', href: 'admin.html' },
       { key: 'log', title: '操作日志统计', href: 'log.html' },
     ]},
-    { key: 'exercise', title: '运动管理', icon: '🏃', href: 'exercise.html' },
   ]},
 ];
 

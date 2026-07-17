@@ -14,7 +14,6 @@
       <main class="content">
         <div class="page-header">
           <span class="page-title">用户管理</span>
-          <span class="page-desc">系统基础功能 - 对应表：User</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增用户</button>
           </div>
@@ -48,7 +47,6 @@
                 <th>用户ID</th>
                 <th>昵称</th>
                 <th>账号</th>
-                <th>手机号</th>
                 <th>性别</th>
                 <th>注册时间</th>
                 <th>状态</th>
@@ -89,7 +87,7 @@
     function renderTable(list, total) {
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(8);
+        tbody.innerHTML = emptyRow(7);
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
@@ -98,7 +96,6 @@
           <td>${row.UserID}</td>
           <td class="text-bold">${escapeHTML(row.UserName)}</td>
           <td>${escapeHTML(row.Account)}</td>
-          <td>${escapeHTML(row.Phone)}</td>
           <td>${escapeHTML(row.Gender)}</td>
           <td>${formatDate(row.RegisterTime)}</td>
           <td><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-danger'}">${row.Status}</span></td>

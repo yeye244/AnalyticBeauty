@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>推荐效果分析 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">推荐效果分析</span>
+        </div>
+
+        <div class="search-bar">
+          <div class="search-item">
+            <label>推荐类型：</label>
+            <select class="form-select" id="searchType">
+              <option value="">全部</option>
+              <option value="护肤品">护肤品</option>
+              <option value="风格">风格</option>
+            </select>
+          </div>
+          <div class="search-item">
+            <label>时间范围：</label>
+            <input type="date" class="form-input" id="startDate">
+            <span>~</span>
+            <input type="date" class="form-input" id="endDate">
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData()">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <div class="stat-value" id="totalCount">0</div>
+              <div class="stat-label">推荐总数</div>
+            </div>
+          </div>
+          <div class="stat-card stat-success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <div class="stat-value" id="acceptedCount">0</div>
+              <div class="stat-label">已采纳</div>
+            </div>
+          </div>
+          <div class="stat-card stat-danger">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+              <div class="stat-value" id="rejectedCount">0</div>
+              <div class="stat-label">未采纳</div>
+            </div>
+          </div>
+          <div class="stat-card stat-warning">
+            <div class="stat-icon">📈</div>
+            <div class="stat-info">
+              <div class="stat-value" id="acceptRate">0%</div>
+              <div class="stat-label">采纳率</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-row">
+          <div class="card">
+            <div class="card-header">
+              <h3>类型分布统计</h3>
+            </div>
+            <div class="card-body">
+              <div id="typeChart" class="chart-row"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>采纳率对比</h3>
+            </div>
+            <div class="card-body">
+              <div id="rateChart" class="chart-row-horizontal"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>推荐趋势（近30天）</h3>
+          </div>
+          <div class="card-body">
+            <div id="trendChart" class="chart-row"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>用户推荐排行</h3>
+          </div>
+          <div class="card-body">
+            <div id="userRankChart" class="user-rank-chart"></div>
+            <div style="margin-top:20px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>用户昵称</th>
+                    <th>推荐总数</th>
+                    <th>已采纳</th>
+                    <th>采纳率</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    async function loadData() {
+      const params = {
+        type: document.getElementById('searchType').value,
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value
+      };
+      const res = await fetchGet('/recommend/effect', params);
+      if (res.code === 0) {
+        renderStats(res.data);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+      }
+    }
+
+    function renderStats(data) {
+      const total = (data.stats || []).reduce((sum, s) => sum + s.Total, 0);
+      const accepted = (data.stats || []).reduce((sum, s) => sum + s.Accepted, 0);
+      const rejected = (data.stats || []).reduce((sum, s) => sum + s.Rejected, 0);
+      const rate = total > 0 ? (accepted / total * 100).toFixed(1) : 0;
+
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('acceptedCount').textContent = accepted;
+      document.getElementById('rejectedCount').textContent = rejected;
+      document.getElementById('acceptRate').textContent = rate + '%';
+
+      renderTypeChart(data.stats || []);
+      renderRateChart(data.stats || []);
+      renderTrendChart(data.trend || []);
+      renderUserRankChart(data.userStats || []);
+      renderUserTable(data.userStats || []);
+    }
+
+    function renderTypeChart(stats) {
+      const maxVal = Math.max(...stats.map(s => s.Total), 1);
+      document.getElementById('typeChart').innerHTML = stats.map(s => `
+        <div class="bar-item">
+          <div class="bar-value">${s.Total}</div>
+          <div class="bar" style="height:${(s.Total / maxVal * 100).toFixed(0)}%;background:#409EFF;"></div>
+          <div class="bar-label">${escapeHTML(s.Type)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderRateChart(stats) {
+      const colors = ['gradient-green', 'gradient-blue', 'gradient-orange', 'gradient-pink'];
+      document.getElementById('rateChart').innerHTML = stats.map((s, i) => `
+        <div class="h-bar-item">
+          <div class="h-bar-label">${escapeHTML(s.Type)}</div>
+          <div class="h-bar-track">
+            <div class="h-bar-fill ${colors[i % colors.length]}" style="width:${s.AcceptRate}%;">
+              <span style="color:#fff;font-size:12px;font-weight:600;">${s.AcceptRate}%</span>
+            </div>
+          </div>
+          <div class="h-bar-value">${s.Accepted}/${s.Total}</div>
+        </div>
+      `).join('');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return m + '-' + day;
+    }
+
+    function renderTrendChart(trend) {
+      if (!trend.length) {
+        document.getElementById('trendChart').innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
+        return;
+      }
+      const maxVal = Math.max(...trend.map(t => parseInt(t.Total)), 1);
+      document.getElementById('trendChart').innerHTML = trend.map(t => `
+        <div class="bar-item" style="min-width:0;">
+          <div class="bar-value" style="font-size:11px;">${t.Total}</div>
+          <div class="bar" style="height:${(parseInt(t.Total) / maxVal * 100).toFixed(0)}%;background:#909399;width:24px;"></div>
+          <div class="bar-label" style="font-size:11px;">${formatDate(t.Date)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderUserRankChart(list) {
+      const chart = document.getElementById('userRankChart');
+      if (!list.length) {
+        chart.innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
+        return;
+      }
+      const topList = list.slice(0, 10);
+      const maxVal = Math.max(...topList.map(u => u.TotalRecommend), 1);
+      chart.innerHTML = topList.map((u, i) => {
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+        const height = (u.TotalRecommend / maxVal * 100).toFixed(0);
+        const rate = u.TotalRecommend > 0 ? (u.Accepted / u.TotalRecommend * 100).toFixed(1) : 0;
+        return `
+          <div class="user-bar-item">
+            <div class="user-bar-tooltip">${escapeHTML(u.UserName || '-')}：${u.TotalRecommend}次推荐，采纳率${rate}%</div>
+            <div class="user-value">${u.TotalRecommend}</div>
+            <div class="user-bar ${rankClass}" style="height:${height}%;"></div>
+            <div class="user-name" title="${escapeHTML(u.UserName || '-')}">${escapeHTML(u.UserName || '-')}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderUserTable(list) {
+      const tbody = document.getElementById('userTableBody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((item, index) => {
+        const rate = item.TotalRecommend > 0 ? (item.Accepted / item.TotalRecommend * 100).toFixed(1) : 0;
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td class="text-bold">${escapeHTML(item.UserName || '-')}</td>
+            <td>${item.TotalRecommend}</td>
+            <td>${item.Accepted}</td>
+            <td><span class="tag ${rate >= 50 ? 'tag-success' : 'tag-warning'}">${rate}%</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function resetSearch() {
+      document.getElementById('searchType').value = '';
+      document.getElementById('startDate').value = '';
+      document.getElementById('endDate').value = '';
+      loadData();
+    }
+
+    initPage('recommend-effect', ['推荐管理', '推荐效果分析']);
+    loadData();
+  </script>
+</body>
+</html>

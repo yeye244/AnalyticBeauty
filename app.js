@@ -28,6 +28,12 @@ app.use("/", styleRouter);
 const systemRouter = require("./routes/systemRouter");
 app.use("/", systemRouter);
 
+const bundleRouter = require("./routes/bundleRouter");
+app.use("/", bundleRouter);
+
+const recommendEffectRouter = require("./routes/recommendEffectRouter");
+app.use("/", recommendEffectRouter);
+
 app.listen(8080, () => {
   console.log(`服务器已启动，请通过 http://127.0.0.1:8080 访问页面`);
 });

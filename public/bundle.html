@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>套装管理 - 美丽推荐平台后台管理系统</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar"></aside>
+    <div class="main-wrapper">
+      <header class="header"></header>
+      <main class="content">
+        <div class="page-header">
+          <span class="page-title">套装管理</span>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增套装</button>
+          </div>
+        </div>
+
+        <div class="search-bar">
+          <div class="search-item">
+            <label>套装名称：</label>
+            <input type="text" class="form-input" id="searchName" placeholder="请输入套装名称">
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary" onclick="loadData(1)">查询</button>
+            <button class="btn btn-default" onclick="resetSearch()">重置</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>套装ID</th>
+                <th>套装名称</th>
+                <th>原价</th>
+                <th>折扣</th>
+                <th>套餐价</th>
+                <th>产品数量</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 10;
+    let total = 0;
+    let products = [];
+    let currentItems = [];
+
+    async function loadData(page = 1) {
+      currentPage = page;
+      const params = { page, pageSize, name: document.getElementById('searchName').value };
+      const res = await fetchGet('/bundle/page', params);
+      if (res.code === 0) {
+        renderTable(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderTable([], 0);
+      }
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(7);
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      tbody.innerHTML = list.map(row => `
+        <tr>
+          <td>${row.BundleID}</td>
+          <td class="text-bold">${escapeHTML(row.BundleName)}</td>
+          <td>¥${row.OriginalPrice || '-'}</td>
+          <td><span class="tag tag-success">${row.DiscountLabel || '-'}</span></td>
+          <td class="text-bold text-danger">¥${row.TotalPrice}</td>
+          <td>${row.ProductCount}</td>
+          <td class="col-actions">
+            <button class="btn-link" onclick="showEditModal(${row.BundleID})">修改</button>
+            <button class="btn-link danger" onclick="deleteBundle(${row.BundleID})">删除</button>
+          </td>
+        </tr>
+      `).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    async function loadProducts() {
+      const res = await fetchGet('/bundle/products');
+      if (res.code === 0) {
+        products = res.data || [];
+        const select = document.getElementById('productSelect');
+        select.innerHTML = '<option value="">请选择产品</option>' + products.map(p => 
+          `<option value="${p.ProductID}" data-name="${p.ProductName}" data-brand="${p.Brand}" data-price="${p.Price}">${p.ProductName} - ¥${p.Price}</option>`
+        ).join('');
+      }
+    }
+
+    function calculateBundlePrice() {
+      const original = parseFloat(document.getElementById('originalPrice').value) || 0;
+      const discount = parseFloat(document.getElementById('discount').value) || 0;
+      if (original > 0 && discount >= 0) {
+        document.getElementById('bundlePrice').value = (original * (1 - discount / 100)).toFixed(2);
+      }
+    }
+
+    function calculateTotal() {
+      const total = currentItems.reduce((sum, item) => sum + (parseFloat(item.Price) || 0) * (parseInt(item.Quantity) || 1), 0);
+      const originalInput = document.getElementById('originalPrice');
+      const bundleInput = document.getElementById('bundlePrice');
+      const discountInput = document.getElementById('discount');
+      const isAddMode = !document.getElementById('editBundleID').value;
+      if (isAddMode) {
+        originalInput.value = total.toFixed(2);
+        const discount = parseFloat(discountInput.value) || 0;
+        if (discount > 0) {
+          bundleInput.value = (total * (1 - discount / 100)).toFixed(2);
+        } else if (!bundleInput.value) {
+          bundleInput.value = total.toFixed(2);
+        }
+      }
+    }
+
+    function addProduct() {
+      const select = document.getElementById('productSelect');
+      const quantity = document.getElementById('productQuantity').value || 1;
+      const selected = select.options[select.selectedIndex];
+      if (!selected.value) { showToast('请选择产品', 'warning'); return; }
+
+      const product = products.find(p => p.ProductID == selected.value);
+      if (!product) return;
+
+      const existing = currentItems.find(i => i.ProductID == product.ProductID);
+      if (existing) {
+        existing.Quantity = (parseInt(existing.Quantity) || 0) + parseInt(quantity);
+      } else {
+        currentItems.push({ ProductID: product.ProductID, ProductName: product.ProductName, Brand: product.Brand, Price: product.Price, Quantity: parseInt(quantity) });
+      }
+      renderProductList();
+      calculateTotal();
+    }
+
+    function removeProduct(productId) {
+      currentItems = currentItems.filter(i => i.ProductID != productId);
+      renderProductList();
+      calculateTotal();
+    }
+
+    function renderProductList() {
+      const tbody = document.getElementById('productList');
+      if (!currentItems.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无产品</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentItems.map(item => `
+        <tr>
+          <td>${escapeHTML(item.ProductName)}</td>
+          <td>${escapeHTML(item.Brand)}</td>
+          <td>¥${item.Price}</td>
+          <td>${item.Quantity}</td>
+          <td><button class="btn-link danger" onclick="removeProduct(${item.ProductID})">删除</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function showAddModal() {
+      currentItems = [];
+      showModal('新增套装', `
+        <form id="bundleForm" onsubmit="return handleSubmit(event)">
+          <input type="hidden" id="editBundleID" value="">
+          <div class="form-group">
+            <label>套装名称 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="bundleName" placeholder="请输入套装名称" required>
+          </div>
+          <div class="form-group">
+            <label>原价</label>
+            <input type="number" class="form-input" id="originalPrice" placeholder="自动计算或手动输入" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>折扣（优惠百分比）</label>
+            <input type="number" class="form-input" id="discount" placeholder="例如：15 表示优惠15%（8.5折）" step="0.01" onchange="calculateBundlePrice()">
+          </div>
+          <div class="form-group">
+            <label>套餐价 <span class="required">*</span></label>
+            <input type="number" class="form-input" id="bundlePrice" placeholder="请输入套餐价" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>包含产品</label>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <select class="form-select" id="productSelect" style="flex:1;">
+                <option value="">请选择产品</option>
+              </select>
+              <input type="number" class="form-input" id="productQuantity" placeholder="数量" value="1" style="width:80px;">
+              <button type="button" class="btn btn-primary" onclick="addProduct()">添加</button>
+            </div>
+            <table class="data-table" style="width:100%;">
+              <thead>
+                <tr><th>产品名称</th><th>品牌</th><th>单价</th><th>数量</th><th>操作</th></tr>
+              </thead>
+              <tbody id="productList"></tbody>
+            </table>
+          </div>
+        </form>
+      `, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
+      `);
+      renderProductList();
+      loadProducts();
+    }
+
+    async function showEditModal(id) {
+      const res = await fetchGet('/bundle/items', { bundleId: id });
+      if (res.code === 0) {
+        currentItems = res.data.map(i => ({ ...i, Quantity: i.Quantity }));
+      } else {
+        currentItems = [];
+      }
+
+      const res2 = await fetchGet('/bundle/page', { page: 1, pageSize: 100, name: '' });
+      const bundle = res2.data.list.find(b => b.BundleID == id);
+      if (!bundle) return;
+
+      const originalPrice = bundle.OriginalPrice || '';
+      const discount = bundle.Discount || '';
+      const bundlePrice = bundle.TotalPrice;
+
+      showModal('修改套装', `
+        <form id="bundleForm" onsubmit="return handleSubmit(event)">
+          <input type="hidden" id="editBundleID" value="${bundle.BundleID}">
+          <div class="form-group">
+            <label>套装名称 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="bundleName" placeholder="请输入套装名称" value="${escapeHTML(bundle.BundleName)}" required>
+          </div>
+          <div class="form-group">
+            <label>原价</label>
+            <input type="number" class="form-input" id="originalPrice" placeholder="自动计算或手动输入" step="0.01" value="${originalPrice}">
+          </div>
+          <div class="form-group">
+            <label>折扣（优惠百分比）</label>
+            <input type="number" class="form-input" id="discount" placeholder="例如：15 表示优惠15%（8.5折）" step="0.01" value="${discount}" onchange="calculateBundlePrice()">
+          </div>
+          <div class="form-group">
+            <label>套餐价 <span class="required">*</span></label>
+            <input type="number" class="form-input" id="bundlePrice" placeholder="请输入套餐价" step="0.01" value="${bundlePrice}" required>
+          </div>
+          <div class="form-group">
+            <label>包含产品</label>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <select class="form-select" id="productSelect" style="flex:1;">
+                <option value="">请选择产品</option>
+              </select>
+              <input type="number" class="form-input" id="productQuantity" placeholder="数量" value="1" style="width:80px;">
+              <button type="button" class="btn btn-primary" onclick="addProduct()">添加</button>
+            </div>
+            <table class="data-table" style="width:100%;">
+              <thead>
+                <tr><th>产品名称</th><th>品牌</th><th>单价</th><th>数量</th><th>操作</th></tr>
+              </thead>
+              <tbody id="productList"></tbody>
+            </table>
+          </div>
+        </form>
+      `, `
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
+      `);
+      renderProductList();
+      loadProducts();
+    }
+
+    async function handleSubmit(e) {
+      if (e) e.preventDefault();
+      const bundleId = document.getElementById('editBundleID').value;
+      const bundleName = document.getElementById('bundleName').value.trim();
+      const originalPrice = document.getElementById('originalPrice').value;
+      const bundlePrice = document.getElementById('bundlePrice').value;
+      
+      if (!bundleName || !bundlePrice) { showToast('请填写必填项', 'warning'); return; }
+
+      const data = {
+        BundleName: bundleName,
+        OriginalPrice: originalPrice,
+        Discount: document.getElementById('discount').value || 0,
+        BundlePrice: bundlePrice,
+        Items: currentItems
+      };
+
+      let url = '/bundle/add';
+      if (bundleId) {
+        url = '/bundle/update';
+        data.BundleID = bundleId;
+      }
+
+      const res = await fetchAPI(url, { method: 'POST', body: data });
+      if (res.code === 0) {
+        showToast(bundleId ? '修改成功' : '新增成功', 'success');
+        closeModal();
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '操作失败', 'error');
+      }
+    }
+
+    async function deleteBundle(id) {
+      if (!confirm('确定要删除该套装吗？')) return;
+      const res = await fetchAPI('/bundle/delete', { method: 'POST', body: { BundleID: id } });
+      if (res.code === 0) {
+        showToast('删除成功', 'success');
+        loadData(currentPage);
+      } else {
+        showToast(res.msg || '删除失败', 'error');
+      }
+    }
+
+    function resetSearch() {
+      document.getElementById('searchName').value = '';
+      loadData(1);
+    }
+
+    initPage('bundle', ['护肤品管理', '套装管理']);
+    loadData(1);
+  </script>
+</body>
+</html>
