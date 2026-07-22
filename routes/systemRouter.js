@@ -17,7 +17,7 @@ systemRouter.get("/admin/page", function (req, res) {
         if (err) { res.json({ code: 5000, msg: '查询失败', data: null }); return; }
         const total = countResult[0].total;
         const offset = (page - 1) * pageSize;
-        let dataSql = `SELECT AdminID, AdminName, AdminRole, LastLoginIP, LastLoginTime, CreateTime
+        let dataSql = `SELECT AdminID, AdminName, AdminRole, Phone, LastLoginIP, LastLoginTime, CreateTime
                        FROM admin ${whereSql} ORDER BY AdminID LIMIT ? OFFSET ?`;
         DB.connect(dataSql, [...params, +pageSize, +offset], (err2, list) => {
             if (err2) { res.json({ code: 5000, msg: '查询失败', data: null }); return; }
@@ -26,6 +26,7 @@ systemRouter.get("/admin/page", function (req, res) {
                 AdminAccount: r.AdminName,
                 AdminName: r.AdminName,
                 Role: r.AdminRole,
+                Phone: r.Phone || '-',
                 LastLogin: r.LastLoginTime,
                 Status: '正常'
             }));
@@ -35,10 +36,10 @@ systemRouter.get("/admin/page", function (req, res) {
 });
 
 systemRouter.post("/admin/add", function (req, res) {
-    const { AdminAccount, AdminPassword, Role = '普通管理员', adminId } = req.body;
+    const { AdminAccount, AdminPassword, Role = '普通管理员', Phone = '', adminId } = req.body;
     if (!AdminAccount || !AdminPassword) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
-    let sql = 'INSERT INTO admin (AdminName, AdminPWD, AdminRole) VALUES (?, ?, ?)';
-    DB.connect(sql, [AdminAccount, AdminPassword, Role], (err, result) => {
+    let sql = 'INSERT INTO admin (AdminName, AdminPWD, AdminRole, Phone) VALUES (?, ?, ?, ?)';
+    DB.connect(sql, [AdminAccount, AdminPassword, Role, Phone], (err, result) => {
         if (err) { 
             DB.log(adminId || 0, '新增', 'admin', `新增管理员失败: ${err.message}`, '失败');
             res.json({ code: 5000, msg: '新增失败', data: null }); 
@@ -50,13 +51,14 @@ systemRouter.post("/admin/add", function (req, res) {
 });
 
 systemRouter.post("/admin/update", function (req, res) {
-    const { AdminID, AdminAccount, AdminPassword, Role, adminId } = req.body;
+    const { AdminID, AdminAccount, AdminPassword, Role, Phone, adminId } = req.body;
     if (!AdminID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     let fields = [];
     let params = [];
     if (AdminAccount !== undefined) { fields.push('AdminName = ?'); params.push(AdminAccount); }
     if (AdminPassword !== undefined) { fields.push('AdminPWD = ?'); params.push(AdminPassword); }
     if (Role !== undefined) { fields.push('AdminRole = ?'); params.push(Role); }
+    if (Phone !== undefined) { fields.push('Phone = ?'); params.push(Phone); }
     if (!fields.length) { res.json({ code: 4001, msg: '没有要更新的字段', data: null }); return; }
     params.push(+AdminID);
     let sql = `UPDATE admin SET ${fields.join(', ')} WHERE AdminID = ?`;

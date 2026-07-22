@@ -51,6 +51,7 @@
             <thead>
               <tr>
                 <th>照片ID</th>
+                <th>用户ID</th>
                 <th>用户</th>
                 <th>图片</th>
                 <th>图片地址</th>
@@ -100,13 +101,14 @@
       total = totalCount;
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(7);
+        tbody.innerHTML = emptyRow(8);
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
           <td>${row.PhotoID}</td>
+          <td>${row.UserID}</td>
           <td>${escapeHTML(row.UserName)}</td>
           <td><div class="thumb-placeholder">图片</div></td>
           <td class="text-muted text-sm">${escapeHTML(row.ImageURL)}</td>

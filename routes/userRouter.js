@@ -59,7 +59,6 @@ userRouter.get("/user/page", function (req, res) {
                 UserID: r.UserID,
                 UserName: r.NickName,
                 Account: r.UserAccount,
-                Phone: '-',
                 Gender: r.UserGender,
                 SkinType: r.SkinType,
                 RegisterTime: r.RegisterTime,

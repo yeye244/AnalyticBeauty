@@ -23,6 +23,10 @@
             <input type="text" class="form-input" id="searchName" placeholder="如：补水保湿套装">
           </div>
           <div class="search-item">
+            <label>产品名称：</label>
+            <input type="text" class="form-input" id="searchProduct" placeholder="如：保湿面膜">
+          </div>
+          <div class="search-item">
             <label>适用肤质：</label>
             <select class="form-select" id="searchSkinType">
               <option value="">全部</option>
@@ -47,26 +51,33 @@
   <script src="js/common.js"></script>
   <script>
     async function loadData() {
+      const productKeyword = document.getElementById('searchProduct').value.trim();
       const params = {
         name: document.getElementById('searchName').value,
+        product: productKeyword,
         skinType: document.getElementById('searchSkinType').value,
       };
       const res = await fetchGet('/bundle/detail', params);
       if (res.code === 0) {
-        renderBundles(res.data || []);
+        renderBundles(res.data || [], productKeyword);
       } else {
         showToast(res.msg || '查询失败', 'error');
-        renderBundles([]);
+        renderBundles([], '');
       }
     }
 
-    function renderBundles(list) {
+    function renderBundles(list, productKeyword) {
       const container = document.getElementById('bundleList');
       if (!list.length) {
         container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">暂无套装数据</div></div>`;
         return;
       }
-      container.innerHTML = list.map(bundle => `
+      container.innerHTML = list.map(bundle => {
+        const filteredItems = productKeyword
+          ? bundle.Items.filter(item => item.ProductName && item.ProductName.includes(productKeyword))
+          : bundle.Items;
+        if (productKeyword && filteredItems.length === 0) return '';
+        return `
         <div class="card" style="margin-bottom:16px;">
           <div class="card-body">
             <div style="display:flex;align-items:center;margin-bottom:16px;">
@@ -92,7 +103,7 @@
                 </tr>
               </thead>
               <tbody>
-                ${bundle.Items.map(item => `
+                ${filteredItems.map(item => `
                   <tr>
                     <td class="text-bold">${escapeHTML(item.ProductName)}</td>
                     <td>${escapeHTML(item.Brand)}</td>
@@ -106,11 +117,13 @@
             </table>
           </div>
         </div>
-      `).join('');
+      `;
+      }).filter(html => html).join('');
     }
 
     function resetSearch() {
       document.getElementById('searchName').value = '';
+      document.getElementById('searchProduct').value = '';
       document.getElementById('searchSkinType').value = '';
       loadData();
     }

@@ -138,6 +138,27 @@ img { display: block; max-width: 100%; }
   flex: 1;
 }
 
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 0;
+  font-weight: normal;
+}
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 /* ==================== 按钮通用 ==================== */
 .btn {
   display: inline-flex;
@@ -801,6 +822,177 @@ table.data-table .empty-row {
   font-size: 12px;
   color: var(--text-2);
   font-weight: 600;
+}
+
+.chart-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 30px;
+  height: 220px;
+  padding: 10px 0;
+}
+.chart-row .bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  flex: 0 0 auto;
+  min-width: 50px;
+}
+.chart-row .bar-item .bar-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+.chart-row .bar-item .bar {
+  width: 40px;
+  background: linear-gradient(180deg, #409EFF, #79bbff);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s ease;
+  min-height: 4px;
+  flex-shrink: 0;
+}
+.chart-row .bar-item .bar-label {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 8px;
+  white-space: nowrap;
+}
+.chart-row-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px 0;
+}
+.chart-row-horizontal .h-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chart-row-horizontal .h-bar-label {
+  width: 90px;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: right;
+  flex-shrink: 0;
+}
+.chart-row-horizontal .h-bar-track {
+  flex: 1;
+  height: 28px;
+  background: #f0f2f5;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.chart-row-horizontal .h-bar-fill {
+  height: 100%;
+  border-radius: 14px;
+  transition: width 0.6s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+.chart-row-horizontal .h-bar-value {
+  width: 70px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.chart-row-horizontal .h-bar-fill.gradient-green {
+  background: linear-gradient(90deg, #67C23A, #85CE61);
+}
+.chart-row-horizontal .h-bar-fill.gradient-blue {
+  background: linear-gradient(90deg, #409EFF, #79bbff);
+}
+.chart-row-horizontal .h-bar-fill.gradient-orange {
+  background: linear-gradient(90deg, #E6A23C, #f0c78a);
+}
+.chart-row-horizontal .h-bar-fill.gradient-pink {
+  background: linear-gradient(90deg, #e91e63, #f8bbd0);
+}
+
+.user-rank-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  height: 260px;
+  padding: 20px 10px 10px;
+  border-bottom: 2px solid var(--border-light);
+  position: relative;
+}
+.user-rank-chart .user-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+}
+.user-rank-chart .user-bar-tooltip {
+  position: absolute;
+  top: -30px;
+  background: var(--dark);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 10;
+}
+.user-rank-chart .user-bar-item:hover .user-bar-tooltip {
+  opacity: 1;
+}
+.user-rank-chart .user-bar {
+  width: 70%;
+  max-width: 50px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s ease;
+  min-height: 4px;
+  cursor: pointer;
+  position: relative;
+}
+.user-rank-chart .user-bar.rank-1 {
+  background: linear-gradient(180deg, #f7d774, #e6a23c);
+  box-shadow: 0 0 12px rgba(230, 162, 60, 0.4);
+}
+.user-rank-chart .user-bar.rank-2 {
+  background: linear-gradient(180deg, #c0c4cc, #909399);
+}
+.user-rank-chart .user-bar.rank-3 {
+  background: linear-gradient(180deg, #e6a23c, #b88230);
+}
+.user-rank-chart .user-bar.rank-other {
+  background: linear-gradient(180deg, #409EFF, #79bbff);
+}
+.user-rank-chart .user-bar:hover {
+  filter: brightness(1.1);
+}
+.user-rank-chart .user-name {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+.user-rank-chart .user-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 4px;
 }
 
 /* 详情描述列表 */
