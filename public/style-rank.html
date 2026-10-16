@@ -13,7 +13,14 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">风格匹配排行</h1>
+            <p class="page-desc">查看不同风格的匹配表现与排名分布。</p>
+          </div>
+=======
           <span class="page-title">风格匹配排行</span>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         </div>
 
         <!-- 查询条件 -->
@@ -39,6 +46,19 @@
           </div>
         </div>
 
+<<<<<<< HEAD
+        <!-- 排行图表 -->
+        <div class="chart-container">
+          <div class="panel-title">风格匹配次数排行</div>
+          <div class="panel-desc" id="rankDesc"></div>
+          <div class="rank-board" id="rankChart"></div>
+          <div class="panel-note" id="rankNote"></div>
+        </div>
+
+        <!-- 排名明细 -->
+        <div class="table-wrapper">
+          <table class="data-table rank-table">
+=======
         <!-- 图表 -->
         <div class="chart-container">
           <div class="panel-title">风格匹配次数排行</div>
@@ -48,15 +68,20 @@
         <!-- 表格 -->
         <div class="table-wrapper">
           <table class="data-table">
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>排名</th>
                 <th>风格名称</th>
                 <th>匹配次数</th>
+<<<<<<< HEAD
+                <th>占比</th>
+=======
                 <th>平均匹配分</th>
                 <th>最高匹配分</th>
                 <th>占比</th>
                 <th>趋势</th>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -69,10 +94,22 @@
   <script src="js/common.js"></script>
   <script>
     async function loadData() {
+<<<<<<< HEAD
+      const order = document.getElementById('searchOrder').value;
+      const params = {
+        range: document.getElementById('searchRange').value,
+        order,
+      };
+      // 图注与实际排序方式保持一致
+      const note = document.getElementById('rankNote');
+      if (note) note.textContent = `单位：次 · 条形长度与匹配次数成正比，按匹配次数从${order === 'ASC' ? '低到高' : '高到低'}排列`;
+
+=======
       const params = {
         range: document.getElementById('searchRange').value,
         order: document.getElementById('searchOrder').value,
       };
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       const res = await fetchGet('/style/rank', params);
       if (res.code === 0) {
         renderChart(res.data || []);
@@ -84,6 +121,36 @@
       }
     }
 
+<<<<<<< HEAD
+    // 排名徽标：仅前三名做克制强调（第一名品牌深莓果 + 香槟金细描边）
+    function rankBadgeClass(index) {
+      return index === 0 ? 'is-first' : index === 1 ? 'is-second' : index === 2 ? 'is-third' : '';
+    }
+
+    function renderChart(data) {
+      const chart = document.getElementById('rankChart');
+      const desc = document.getElementById('rankDesc');
+      if (!data.length) {
+        if (desc) desc.textContent = '';
+        chart.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">${icon('chart')}</div>
+            <div class="empty-text">暂无风格匹配数据</div>
+          </div>`;
+        return;
+      }
+      const maxVal = Math.max(...data.map(d => d.MatchCount), 1);
+      const total = data.reduce((s, d) => s + d.MatchCount, 0);
+      if (desc) desc.textContent = `共 ${data.length} 个风格 · 累计 ${total} 次匹配`;
+      chart.innerHTML = data.map((d, i) => {
+        const width = (d.MatchCount / maxVal * 100).toFixed(1);
+        return `
+          <div class="rank-row${i === 0 ? ' is-first' : ''}">
+            <span class="rank-badge ${rankBadgeClass(i)}">${i + 1}</span>
+            <span class="rank-name" title="${escapeHTML(d.StyleName)}">${escapeHTML(d.StyleName)}</span>
+            <span class="rank-track"><span class="rank-fill" style="width:${width}%;"></span></span>
+            <span class="rank-value">${d.MatchCount} 次</span>
+=======
     function renderChart(data) {
       const chart = document.getElementById('rankChart');
       const maxVal = Math.max(...data.map(d => d.MatchCount), 1);
@@ -94,6 +161,7 @@
             <div class="bar-value">${d.MatchCount}</div>
             <div class="bar" style="height:${height}%;"></div>
             <div class="bar-label">${escapeHTML(d.StyleName)}</div>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         `;
       }).join('');
@@ -102,6 +170,24 @@
     function renderTable(data) {
       const tbody = document.getElementById('tableBody');
       if (!data.length) {
+<<<<<<< HEAD
+        tbody.innerHTML = emptyRow(4, '暂无风格匹配数据');
+        return;
+      }
+      tbody.innerHTML = data.map((row, i) => `
+        <tr>
+          <td><span class="rank-badge ${rankBadgeClass(i)}">${i + 1}</span></td>
+          <td class="text-bold">${escapeHTML(row.StyleName)}</td>
+          <td>${row.MatchCount} 次</td>
+          <td>
+            <div class="pct-cell">
+              <span class="pct-track"><span class="pct-fill" style="width:${row.Percentage}%;"></span></span>
+              <span class="text-sm">${row.Percentage}%</span>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+=======
         tbody.innerHTML = emptyRow(7);
         return;
       }
@@ -128,6 +214,7 @@
           </tr>
         `;
       }).join('');
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     }
 
     initPage('style-rank', ['AI分析管理', '风格匹配排行']);

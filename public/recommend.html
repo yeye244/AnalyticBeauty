@@ -13,16 +13,37 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">推荐记录管理</h1>
+            <p class="page-desc">统一查看与管理平台生成的推荐记录。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="recommendSummary">共 0 条推荐记录</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增推荐
+            </button>
+            <a href="recommend-detail.html" class="btn btn-default">推荐详情查询</a>
+=======
           <span class="page-title">推荐记录管理</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增推荐</button>
             <a href="recommend-detail.html" class="btn btn-default">查看推荐详情查询</a>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
         <!-- 搜索栏 -->
         <div class="search-bar">
           <div class="search-item">
+<<<<<<< HEAD
+            <label>用户：</label>
+            <input type="text" class="form-input" id="searchUser" placeholder="请输入用户名">
+          </div>
+          <div class="search-item">
+=======
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <label>推荐类型：</label>
             <select class="form-select" id="searchType">
               <option value="">全部</option>
@@ -38,10 +59,13 @@
               <option value="未采纳">未采纳</option>
             </select>
           </div>
+<<<<<<< HEAD
+=======
           <div class="search-item">
             <label>用户：</label>
             <input type="text" class="form-input" id="searchUser" placeholder="请输入用户名">
           </div>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <div class="search-actions">
             <button class="btn btn-primary" onclick="loadData(1)">查询</button>
             <button class="btn btn-default" onclick="resetSearch()">重置</button>
@@ -50,7 +74,11 @@
 
         <!-- 表格 -->
         <div class="table-wrapper">
+<<<<<<< HEAD
+          <table class="data-table recommend-table">
+=======
           <table class="data-table">
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>推荐ID</th>
@@ -78,8 +106,11 @@
     let total = 0;
     let currentList = [];
 
+<<<<<<< HEAD
+=======
     const mockData = [];
 
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     async function loadData(page = 1) {
       currentPage = page;
       const params = {
@@ -98,16 +129,42 @@
       }
     }
 
+<<<<<<< HEAD
+    // 是否处于筛选状态（用于区分「暂无数据」与「无匹配结果」）
+    function hasActiveFilter() {
+      return !!(document.getElementById('searchUser').value.trim() ||
+                document.getElementById('searchType').value ||
+                document.getElementById('searchStatus').value);
+    }
+
+    function renderTable(list, totalCount) {
+      total = totalCount;
+      const tbody = document.getElementById('tableBody');
+      const summary = document.getElementById('recommendSummary');
+      if (summary) summary.textContent = `共 ${total} 条推荐记录`;
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(8, hasActiveFilter() ? '没有符合条件的推荐记录' : '暂无推荐记录');
+=======
     function renderTable(list, totalCount) {
       total = totalCount;
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
         tbody.innerHTML = emptyRow(8);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
+<<<<<<< HEAD
+          <td class="cell-id">${row.RecommendID}</td>
+          <td class="cell-user">${escapeHTML(row.UserName || '—')}</td>
+          <td><span class="tag tag-info">${escapeHTML(row.RecommendType || '—')}</span></td>
+          <td class="reason-cell" title="${escapeHTML(row.RecommendReason || '')}"><span class="reason-text">${escapeHTML(row.RecommendReason || '—')}</span></td>
+          <td><span class="tag ${row.Status === '已采纳' ? 'tag-success' : 'tag-default'}">${row.Status}</span></td>
+          <td>${renderRating(row.RecommendScore)}</td>
+          <td class="cell-time">${formatDate(row.RecommendTime)}</td>
+=======
           <td>${row.RecommendID}</td>
           <td>${escapeHTML(row.UserName)}</td>
           <td><span class="tag tag-info">${escapeHTML(row.RecommendType)}</span></td>
@@ -115,6 +172,7 @@
           <td><span class="tag ${row.Status === '已采纳' ? 'tag-success' : 'tag-default'}">${row.Status}</span></td>
           <td>${renderRating(row.RecommendScore)}</td>
           <td>${formatDate(row.RecommendTime)}</td>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <td class="col-actions">
             <button class="btn-link" onclick="showEditModal(${row.RecommendID})">修改</button>
             <button class="btn-link danger" onclick="deleteRecommend(${row.RecommendID})">删除</button>
@@ -159,6 +217,16 @@
             </select>
           </div>
           <div class="form-group">
+<<<<<<< HEAD
+            <label>推荐评分</label>
+            <select class="form-select" id="formScore">
+              <option value="">未评分</option>
+              <option value="5">5 分</option>
+              <option value="4">4 分</option>
+              <option value="3">3 分</option>
+              <option value="2">2 分</option>
+              <option value="1">1 分</option>
+=======
             <label>推荐评分（评优新增字段）</label>
             <select class="form-select" id="formScore">
               <option value="">未评分</option>
@@ -167,6 +235,7 @@
               <option value="3">★★★ 3分</option>
               <option value="2">★★ 2分</option>
               <option value="1">★ 1分</option>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
         </div>
@@ -233,6 +302,16 @@
             </select>
           </div>
           <div class="form-group">
+<<<<<<< HEAD
+            <label>推荐评分</label>
+            <select class="form-select" id="formScore">
+              <option value="" ${row.RecommendScore == null ? 'selected' : ''}>未评分</option>
+              <option value="5" ${row.RecommendScore == 5 ? 'selected' : ''}>5 分</option>
+              <option value="4" ${row.RecommendScore == 4 ? 'selected' : ''}>4 分</option>
+              <option value="3" ${row.RecommendScore == 3 ? 'selected' : ''}>3 分</option>
+              <option value="2" ${row.RecommendScore == 2 ? 'selected' : ''}>2 分</option>
+              <option value="1" ${row.RecommendScore == 1 ? 'selected' : ''}>1 分</option>
+=======
             <label>推荐评分（评优新增字段）</label>
             <select class="form-select" id="formScore">
               <option value="" ${row.RecommendScore == null ? 'selected' : ''}>未评分</option>
@@ -241,6 +320,7 @@
               <option value="3" ${row.RecommendScore == 3 ? 'selected' : ''}>★★★ 3分</option>
               <option value="2" ${row.RecommendScore == 2 ? 'selected' : ''}>★★ 2分</option>
               <option value="1" ${row.RecommendScore == 1 ? 'selected' : ''}>★ 1分</option>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
         </div>

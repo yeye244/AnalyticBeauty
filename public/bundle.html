@@ -13,9 +13,22 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">套装管理</h1>
+            <p class="page-desc">统一维护护肤套装及其包含的产品组合。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="bundleSummary">共 0 个套装</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增套装
+            </button>
+=======
           <span class="page-title">套装管理</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增套装</button>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -30,6 +43,11 @@
           </div>
         </div>
 
+<<<<<<< HEAD
+        <!-- 套装卡片：套餐价 + 真实关联产品组合 -->
+        <div class="bundle-grid" id="bundleGrid"></div>
+        <div class="pagination pagination-standalone" id="pagination"></div>
+=======
         <div class="table-wrapper">
           <table class="data-table">
             <thead>
@@ -47,6 +65,7 @@
           </table>
           <div class="pagination" id="pagination"></div>
         </div>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       </main>
     </div>
   </div>
@@ -58,11 +77,97 @@
     let total = 0;
     let products = [];
     let currentItems = [];
+<<<<<<< HEAD
+    let currentList = [];   // 当前页套装列表（供修改弹窗直接读取，避免二次请求）
+
+    function hasActiveFilter() {
+      return document.getElementById('searchName').value.trim() !== '';
+    }
+=======
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
     async function loadData(page = 1) {
       currentPage = page;
       const params = { page, pageSize, name: document.getElementById('searchName').value };
       const res = await fetchGet('/bundle/page', params);
+<<<<<<< HEAD
+      if (res.code !== 0) {
+        showToast(res.msg || '查询失败', 'error');
+        currentList = [];
+        renderLoadError(res.msg || '数据加载失败，请稍后重试');
+        return;
+      }
+      const list = res.data.list || [];
+      currentList = list;
+      // 并行读取每个套装包含的真实产品（bundleitem 关联表）
+      const itemResults = await Promise.all(list.map(b => fetchGet('/bundle/items', { bundleId: b.BundleID })));
+      list.forEach((b, i) => {
+        const r = itemResults[i];
+        b.Items = (r && r.code === 0 && Array.isArray(r.data)) ? r.data : [];
+      });
+      renderCards(list, res.data.total || 0);
+    }
+
+    function renderCards(list, totalCount) {
+      total = totalCount;
+      const summary = document.getElementById('bundleSummary');
+      if (summary) summary.textContent = `共 ${total} 个套装`;
+      const grid = document.getElementById('bundleGrid');
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">${icon('package')}</div>
+            <div class="empty-text">${hasActiveFilter() ? '没有符合条件的套装' : '暂无套装数据'}</div>
+          </div>`;
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      grid.innerHTML = list.map(b => {
+        const items = b.Items || [];
+        const hasDiscount = parseFloat(b.Discount) > 0;
+        return `
+          <article class="bundle-card">
+            <div class="bundle-card-head">
+              <h3 class="bundle-card-title">${escapeHTML(b.BundleName)}</h3>
+              <span class="bundle-card-id">#${b.BundleID}</span>
+            </div>
+            <div class="bundle-price-row">
+              <span class="bundle-price-main">¥${escapeHTML(String(b.TotalPrice))}</span>
+              <span class="bundle-price-origin">¥${escapeHTML(String(b.OriginalPrice || '-'))}</span>
+              <span class="tag ${hasDiscount ? 'tag-primary' : 'tag-default'} bundle-discount">${escapeHTML(b.DiscountLabel || '-')}</span>
+            </div>
+            <div class="bundle-items">
+              <div class="bundle-items-title">包含产品 · ${items.length} 款</div>
+              ${items.map(i => `
+                <div class="bundle-item">
+                  <span class="bundle-item-name">${escapeHTML(i.ProductName || '')}</span>
+                  <span class="bundle-item-brand">${escapeHTML(i.Brand || '')}</span>
+                  <span class="bundle-item-price">¥${escapeHTML(String(i.Price))}${i.Quantity > 1 ? ` ×${i.Quantity}` : ''}</span>
+                </div>`).join('')}
+            </div>
+            <div class="bundle-card-actions">
+              <button class="btn-link" onclick="showEditModal(${b.BundleID})">修改</button>
+              <button class="btn-link danger" onclick="deleteBundle(${b.BundleID})">删除</button>
+            </div>
+          </article>`;
+      }).join('');
+      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    // 加载失败：明确提示并清空分页，不伪装成空数据
+    function renderLoadError(msg) {
+      total = 0;
+      const summary = document.getElementById('bundleSummary');
+      if (summary) summary.textContent = '—';
+      document.getElementById('bundleGrid').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">${icon('package')}</div>
+          <div class="empty-text">${escapeHTML(msg)}</div>
+        </div>`;
+      document.getElementById('pagination').innerHTML = '';
+    }
+
+=======
       if (res.code === 0) {
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
@@ -96,6 +201,7 @@
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }
 
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     async function loadProducts() {
       const res = await fetchGet('/bundle/products');
       if (res.code === 0) {
@@ -158,6 +264,74 @@
     }
 
     function renderProductList() {
+<<<<<<< HEAD
+      const box = document.getElementById('productList');
+      if (!box) return;
+      if (!currentItems.length) {
+        box.innerHTML = '<div class="picked-empty">尚未添加产品</div>';
+        return;
+      }
+      box.innerHTML = currentItems.map(item => `
+        <div class="picked-row">
+          <span class="picked-info">
+            <span class="picked-name">${escapeHTML(item.ProductName)}</span>
+            <span class="picked-brand">${escapeHTML(item.Brand || '')}</span>
+          </span>
+          <span class="picked-price">¥${escapeHTML(String(item.Price))}</span>
+          <span class="picked-qty">×${item.Quantity}</span>
+          <button type="button" class="btn-link danger" onclick="removeProduct(${item.ProductID})">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // 新增 / 修改共用同一表单结构，保证字段分组与样式一致
+    function bundleFormHTML(bundle) {
+      const b = bundle || {};
+      return `
+        <form id="bundleForm" onsubmit="return handleSubmit(event)">
+          <input type="hidden" id="editBundleID" value="${b.BundleID != null ? b.BundleID : ''}">
+          <div class="form-group">
+            <label>套装名称 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="bundleName" placeholder="请输入套装名称" value="${b.BundleName ? escapeHTML(b.BundleName) : ''}" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>原价</label>
+              <input type="number" class="form-input" id="originalPrice" placeholder="自动计算或手动输入" step="0.01" value="${b.OriginalPrice != null ? b.OriginalPrice : ''}">
+            </div>
+            <div class="form-group">
+              <label>折扣（%）</label>
+              <input type="number" class="form-input" id="discount" placeholder="如 15 表示 8.5 折" step="0.01" value="${b.Discount != null ? b.Discount : ''}" onchange="calculateBundlePrice()">
+            </div>
+            <div class="form-group">
+              <label>套餐价 <span class="required">*</span></label>
+              <input type="number" class="form-input" id="bundlePrice" placeholder="请输入套餐价" step="0.01" value="${b.TotalPrice != null ? b.TotalPrice : ''}" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>包含产品</label>
+            <div class="bundle-picker">
+              <select class="form-select" id="productSelect">
+                <option value="">请选择产品</option>
+              </select>
+              <input type="number" class="form-input" id="productQuantity" placeholder="数量" value="1">
+              <button type="button" class="btn btn-primary" onclick="addProduct()">添加</button>
+            </div>
+            <div class="bundle-picked" id="productList"></div>
+          </div>
+        </form>
+      `;
+    }
+
+    const BUNDLE_FORM_FOOTER = `
+      <button class="btn btn-default" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
+    `;
+
+    function showAddModal() {
+      currentItems = [];
+      showModal('新增套装', bundleFormHTML(null), BUNDLE_FORM_FOOTER);
+=======
       const tbody = document.getElementById('productList');
       if (!currentItems.length) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无产品</td></tr>';
@@ -216,11 +390,19 @@
         <button class="btn btn-default" onclick="closeModal()">取消</button>
         <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
       `);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       renderProductList();
       loadProducts();
     }
 
     async function showEditModal(id) {
+<<<<<<< HEAD
+      const bundle = currentList.find(b => b.BundleID == id);
+      if (!bundle) { showToast('未找到该套装，请刷新后重试', 'error'); return; }
+      const res = await fetchGet('/bundle/items', { bundleId: id });
+      currentItems = (res.code === 0 && Array.isArray(res.data)) ? res.data : [];
+      showModal('修改套装', bundleFormHTML(bundle), BUNDLE_FORM_FOOTER);
+=======
       const res = await fetchGet('/bundle/items', { bundleId: id });
       if (res.code === 0) {
         currentItems = res.data.map(i => ({ ...i, Quantity: i.Quantity }));
@@ -276,6 +458,7 @@
         <button class="btn btn-default" onclick="closeModal()">取消</button>
         <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
       `);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       renderProductList();
       loadProducts();
     }
@@ -313,6 +496,18 @@
       }
     }
 
+<<<<<<< HEAD
+    function deleteBundle(id) {
+      confirmDialog('确定要删除该套装吗？删除后其中的产品关联也会一并移除。', async () => {
+        const res = await fetchAPI('/bundle/delete', { method: 'POST', body: { BundleID: id } });
+        if (res.code === 0) {
+          showToast('删除成功', 'success');
+          loadData(currentPage);
+        } else {
+          showToast(res.msg || '删除失败', 'error');
+        }
+      });
+=======
     async function deleteBundle(id) {
       if (!confirm('确定要删除该套装吗？')) return;
       const res = await fetchAPI('/bundle/delete', { method: 'POST', body: { BundleID: id } });
@@ -322,6 +517,7 @@
       } else {
         showToast(res.msg || '删除失败', 'error');
       }
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     }
 
     function resetSearch() {

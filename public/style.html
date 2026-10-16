@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
+  <title>风格管理 - 美丽推荐平台后台管理系统</title>
+=======
   <title>风格标签管理 - 美丽推荐平台后台管理系统</title>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -13,9 +17,22 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">风格管理</h1>
+            <p class="page-desc">统一维护用于 AI 分析与搭配推荐的风格档案。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="styleSummary">共 0 个风格</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增风格
+            </button>
+=======
           <span class="page-title">风格标签管理</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增风格</button>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -23,7 +40,11 @@
         <div class="search-bar">
           <div class="search-item">
             <label>风格名称：</label>
+<<<<<<< HEAD
+            <input type="text" class="form-input" id="searchName" placeholder="如：韩系清新">
+=======
             <input type="text" class="form-input" id="searchName" placeholder="如：韩系风">
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
           <div class="search-actions">
             <button class="btn btn-primary" onclick="loadData(1)">查询</button>
@@ -31,6 +52,11 @@
           </div>
         </div>
 
+<<<<<<< HEAD
+        <!-- 风格卡片 -->
+        <div class="style-grid" id="styleGrid"></div>
+        <div class="pagination" id="pagination"></div>
+=======
         <!-- 表格 -->
         <div class="table-wrapper">
           <table class="data-table">
@@ -48,6 +74,7 @@
           </table>
           <div class="pagination" id="pagination"></div>
         </div>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       </main>
     </div>
   </div>
@@ -59,7 +86,31 @@
     let total = 0;
     let currentList = [];
 
+<<<<<<< HEAD
+    function hasActiveFilter() {
+      return document.getElementById('searchName').value.trim() !== '';
+    }
+
+    // 使用次数为 stylematch 关联表的真实计数，空值按 0 处理
+    function formatUseCount(value) {
+      const num = parseInt(value, 10);
+      return isNaN(num) ? 0 : num;
+    }
+
+    function emptyStateHTML(text) {
+      return `<div class="empty-state">
+        <div class="empty-icon">${icon('palette')}</div>
+        <div class="empty-text">${escapeHTML(text)}</div>
+      </div>`;
+    }
+
+    function setSummary(text) {
+      const el = document.getElementById('styleSummary');
+      if (el) el.textContent = text;
+    }
+=======
     const mockData = [];
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
     async function loadData(page = 1) {
       currentPage = page;
@@ -70,6 +121,43 @@
       const res = await fetchGet('/style/list', params);
       if (res.code === 0) {
         currentList = res.data.list || [];
+<<<<<<< HEAD
+        renderCards(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        currentList = [];
+        renderLoadError(res.msg || '数据加载失败，请稍后重试');
+      }
+    }
+
+    function renderCards(list, totalCount) {
+      total = totalCount;
+      setSummary(`共 ${total} 个风格`);
+      const grid = document.getElementById('styleGrid');
+      if (!list.length) {
+        grid.innerHTML = emptyStateHTML(hasActiveFilter() ? '没有符合条件的风格' : '暂无风格数据');
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+      grid.innerHTML = list.map(row => `
+        <article class="style-card">
+          <div class="style-card-main">
+            <span class="style-mark">${icon('palette')}</span>
+            <span class="style-card-info">
+              <span class="style-card-name" title="${escapeHTML(row.StyleName)}">${escapeHTML(row.StyleName)}</span>
+              <span class="style-card-id">#${row.StyleID}</span>
+            </span>
+            <span class="style-count">
+              <span class="style-count-num">${formatUseCount(row.UseCount)}</span>
+              <span class="style-count-label">使用次数</span>
+            </span>
+          </div>
+          <div class="style-card-actions">
+            <button class="btn-link" onclick="showEditModal(${row.StyleID})">修改</button>
+            <button class="btn-link danger" onclick="deleteStyle(${row.StyleID})">删除</button>
+          </div>
+        </article>
+=======
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
@@ -97,10 +185,22 @@
             <button class="btn-link danger" onclick="deleteStyle(${row.StyleID})">删除</button>
           </td>
         </tr>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       `).join('');
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }
 
+<<<<<<< HEAD
+    // 加载失败：明确提示并清空分页，不伪装成空数据
+    function renderLoadError(msg) {
+      total = 0;
+      setSummary('—');
+      document.getElementById('styleGrid').innerHTML = emptyStateHTML(msg);
+      document.getElementById('pagination').innerHTML = '';
+    }
+
+=======
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     function resetSearch() {
       document.getElementById('searchName').value = '';
       loadData(1);

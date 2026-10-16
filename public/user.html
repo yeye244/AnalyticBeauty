@@ -13,9 +13,22 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">用户管理</h1>
+            <p class="page-desc">统一管理平台用户信息，维护用户数据与相关业务记录。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="userSummary">共 0 位用户</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增用户
+            </button>
+=======
           <span class="page-title">用户管理</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增用户</button>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -41,7 +54,11 @@
 
         <!-- 表格 -->
         <div class="table-wrapper">
+<<<<<<< HEAD
+          <table class="data-table user-table">
+=======
           <table class="data-table">
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>用户ID</th>
@@ -65,8 +82,12 @@
   <script>
     let currentPage = 1;
     const pageSize = 10;
+<<<<<<< HEAD
+    let currentList = [];
+=======
 
     const mockData = [];
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
     async function loadData(page = 1) {
       currentPage = page;
@@ -77,6 +98,33 @@
       };
       const res = await fetchGet('/user/page', params);
       if (res.code === 0) {
+<<<<<<< HEAD
+        currentList = res.data.list || [];
+        renderTable(currentList, res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        currentList = [];
+        document.getElementById('tableBody').innerHTML = emptyRow(7, escapeHTML(res.msg || '数据加载失败，请稍后重试'));
+        document.getElementById('pagination').innerHTML = '';
+        const summary = document.getElementById('userSummary');
+        if (summary) summary.textContent = '加载失败';
+      }
+    }
+
+    // 是否处于筛选状态（用于区分「暂无数据」与「无匹配结果」）
+    function hasActiveFilter() {
+      return !!(document.getElementById('searchName').value.trim() ||
+                document.getElementById('searchStatus').value);
+    }
+
+    function renderTable(list, total) {
+      const tbody = document.getElementById('tableBody');
+      const summary = document.getElementById('userSummary');
+      if (summary) summary.textContent = `共 ${total} 位用户`;
+
+      if (!list.length) {
+        tbody.innerHTML = emptyRow(7, hasActiveFilter() ? '没有符合条件的用户' : '暂无用户数据');
+=======
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
@@ -88,6 +136,7 @@
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
         tbody.innerHTML = emptyRow(7);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
@@ -163,15 +212,23 @@
         closeModal();
         loadData(1);
       } else {
+<<<<<<< HEAD
+        showToast(res.msg || '新增失败，请稍后重试', 'error');
+=======
         mockData.unshift({ UserID: mockData.length + 1, RegisterTime: new Date().toLocaleString(), Status: '正常', ...data, Phone: data.Phone || '-' });
         showToast('新增成功（演示模式）', 'success');
         closeModal();
         loadData(1);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       }
     }
 
     function showEditModal(id) {
+<<<<<<< HEAD
+      const row = currentList.find(r => r.UserID === id);
+=======
       const row = mockData.find(r => r.UserID === id);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       if (!row) return;
       const bodyHTML = `
         <div class="form-group">
@@ -226,11 +283,15 @@
         closeModal();
         loadData(currentPage);
       } else {
+<<<<<<< HEAD
+        showToast(res.msg || '修改失败，请稍后重试', 'error');
+=======
         const row = mockData.find(r => r.UserID === id);
         if (row) Object.assign(row, data);
         showToast('修改成功（演示模式）', 'success');
         closeModal();
         loadData(currentPage);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       }
     }
 
@@ -241,10 +302,14 @@
           showToast('删除成功', 'success');
           loadData(currentPage);
         } else {
+<<<<<<< HEAD
+          showToast(res.msg || '删除失败，请稍后重试', 'error');
+=======
           const idx = mockData.findIndex(r => r.UserID === id);
           if (idx > -1) mockData.splice(idx, 1);
           showToast('删除成功（演示模式）', 'success');
           loadData(currentPage);
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         }
       });
     }

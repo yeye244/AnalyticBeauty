@@ -13,9 +13,22 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
+<<<<<<< HEAD
+          <div class="page-heading">
+            <h1 class="page-title">照片管理</h1>
+            <p class="page-desc">统一管理用户上传的照片，为 AI 分析与个性化风格推荐提供数据支持。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="photoSummary">共 0 张照片</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增照片
+            </button>
+=======
           <span class="page-title">照片管理</span>
           <div class="page-actions">
             <button class="btn btn-primary" onclick="showAddModal()">＋ 新增照片</button>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -45,6 +58,11 @@
           </div>
         </div>
 
+<<<<<<< HEAD
+        <!-- 照片网格 -->
+        <div class="photo-grid" id="photoGrid"></div>
+        <div class="pagination pagination-standalone" id="pagination"></div>
+=======
         <!-- 表格 -->
         <div class="table-wrapper">
           <table class="data-table">
@@ -64,6 +82,7 @@
           </table>
           <div class="pagination" id="pagination"></div>
         </div>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       </main>
     </div>
   </div>
@@ -71,12 +90,19 @@
   <script src="js/common.js"></script>
   <script>
     let currentPage = 1;
+<<<<<<< HEAD
+    const pageSize = 12;
+    let total = 0;
+    let currentList = [];
+
+=======
     const pageSize = 10;
     let total = 0;
     let currentList = [];
 
     const mockData = [];
 
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     async function loadData(page = 1) {
       currentPage = page;
       const params = {
@@ -90,6 +116,60 @@
       const res = await fetchGet('/photo/page', params);
       if (res.code === 0) {
         currentList = res.data.list || [];
+<<<<<<< HEAD
+        renderGrid(res.data.list || [], res.data.total || 0);
+      } else {
+        showToast(res.msg || '查询失败', 'error');
+        renderGrid([], 0);
+      }
+    }
+
+    // 分析状态 → 标签样式（状态值以数据库实际值为准）
+    function statusTagClass(status) {
+      switch (status) {
+        case '已完成': return 'tag-success';
+        case '分析中': return 'tag-warning';
+        case '分析失败': return 'tag-danger';
+        case '未分析': return 'tag-info';
+        default: return 'tag-default';
+      }
+    }
+
+    function renderGrid(list, totalCount) {
+      total = totalCount;
+      const grid = document.getElementById('photoGrid');
+      const summary = document.getElementById('photoSummary');
+      if (summary) summary.textContent = `共 ${total} 张照片`;
+
+      if (!list.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">${icon('photo')}</div>
+            <div class="empty-text">暂无照片数据</div>
+          </div>`;
+        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+        return;
+      }
+
+      grid.innerHTML = list.map(row => `
+        <article class="photo-card">
+          <div class="photo-thumb">
+            <span class="tag ${statusTagClass(row.Status)} photo-status">${escapeHTML(row.Status || '未知')}</span>
+            <img src="${escapeHTML(row.ImageURL)}" alt="照片 ${row.PhotoID}" loading="lazy"
+                 onerror="this.style.display='none';this.parentNode.querySelector('.photo-fallback').style.display='flex';">
+            <div class="photo-fallback">${icon('photo')}<span>图片文件缺失</span></div>
+          </div>
+          <div class="photo-meta">
+            <div class="photo-title">照片 #${row.PhotoID}</div>
+            <div class="photo-sub">用户 #${row.UserID} · ${escapeHTML(row.UserName || '未关联')}</div>
+            <div class="photo-time">${formatDate(row.UploadTime)}</div>
+          </div>
+          <div class="photo-actions">
+            <button class="btn-link" onclick="showEditModal(${row.PhotoID})">修改</button>
+            <button class="btn-link danger" onclick="deletePhoto(${row.PhotoID})">删除</button>
+          </div>
+        </article>
+=======
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
@@ -119,6 +199,7 @@
             <button class="btn-link danger" onclick="deletePhoto(${row.PhotoID})">删除</button>
           </td>
         </tr>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       `).join('');
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }

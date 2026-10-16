@@ -8,6 +8,40 @@
 </head>
 <body class="login-body">
   <div class="login-card">
+<<<<<<< HEAD
+    <!-- 品牌展示区 -->
+    <aside class="login-brand">
+      <div class="login-logo">
+        <img class="brand-logo" src="assets/images/logo-refined.png" alt="美丽推荐平台">
+        <div class="brand-text">
+          <h1>美丽推荐平台</h1>
+          <p>BEAUTY RECOMMENDATION PLATFORM</p>
+        </div>
+      </div>
+      <p class="brand-tagline">以数据读懂肌肤，为每一张面孔推荐恰到好处的风格。</p>
+      <span class="brand-meta">后台管理系统 · 管理控制台</span>
+    </aside>
+
+    <!-- 登录表单区 -->
+    <section class="login-panel">
+      <div class="login-panel-head">
+        <h2>欢迎回来</h2>
+        <p>请使用管理员账号登录后台</p>
+      </div>
+      <form id="loginForm" onsubmit="return handleLogin(event)">
+        <div class="form-group">
+          <label>管理员账号</label>
+          <input type="text" class="form-input" id="username" placeholder="请输入账号" required>
+        </div>
+        <div class="form-group">
+          <label>登录密码</label>
+          <input type="password" class="form-input" id="password" placeholder="请输入密码" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block login-submit">登 录</button>
+      </form>
+      <p class="login-foot">仅限授权管理员访问</p>
+    </section>
+=======
     <div class="login-logo">
       <div class="logo-icon">美</div>
       <h1>美丽推荐平台</h1>
@@ -24,6 +58,7 @@
       </div>
       <button type="submit" class="btn btn-primary btn-block" style="height:42px;font-size:15px;margin-top:6px;">登 录</button>
     </form>
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
   </div>
 
   <script src="js/common.js"></script>
@@ -60,6 +95,9 @@
         showToast('登录成功', 'success');
         setTimeout(() => window.location.href = 'index.html', 800);
       } else {
+<<<<<<< HEAD
+        showToast(res.msg || '账号或密码错误', 'error');
+=======
         // 接口未就绪时允许演示登录
         if (username === 'admin' && password === '123456') {
           sessionStorage.setItem('adminToken', 'demo_token');
@@ -70,6 +108,7 @@
         } else {
           showToast(res.msg || '账号或密码错误', 'error');
         }
+>>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       }
       return false;
     }
