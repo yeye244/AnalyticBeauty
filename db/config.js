@@ -22,6 +22,9 @@ module.exports = {
 
     let conn = mysql.createConnection(this.config)
 
+    // 监听连接错误，避免远程库超时(ETIMEDOUT)抛出未捕获的 error 事件导致进程崩溃
+    conn.on('error', (err) => { console.error('数据库连接错误:', err.message); })
+
     conn.connect(); // 打开链接
 
     conn.query(sql, params, cb); //执行mysql语句
@@ -35,6 +38,7 @@ module.exports = {
     const validAdminId = (!adminId || isNaN(+adminId) || +adminId <= 0) ? 1 : +adminId;
     const sql = 'INSERT INTO log (Log_AdminID, OperationType, OperationTable, OperationContent, OperationResult) VALUES (?, ?, ?, ?, ?)';
     const conn = mysql.createConnection(this.config);
+    conn.on('error', (err) => { console.error('日志连接错误:', err.message); });
     conn.connect();
     conn.query(sql, [validAdminId, operationType, operationTable, operationContent, operationResult], (err) => {
       if (err) console.error('日志记录失败:', err.message);

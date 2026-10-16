@@ -37,6 +37,7 @@
             <thead>
               <tr>
                 <th>风格ID</th>
+                <th>图片</th>
                 <th>风格名称</th>
                 <th>风格描述</th>
                 <th>使用次数</th>
@@ -81,13 +82,14 @@
       total = totalCount;
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(6);
+        tbody.innerHTML = emptyRow(7);
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
           <td>${row.StyleID}</td>
+          <td>${row.StyleImageURL ? `<img class="thumb" src="${escapeHTML(row.StyleImageURL)}" alt="风格图" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-placeholder',textContent:'无图'}))">` : '<div class="thumb-placeholder">无图</div>'}</td>
           <td><span class="tag tag-primary">${escapeHTML(row.StyleName)}</span></td>
           <td class="text-muted">${escapeHTML(row.Description)}</td>
           <td>${row.UseCount} 次</td>
@@ -116,6 +118,10 @@
           <label>风格描述</label>
           <textarea class="form-textarea" id="formDesc" placeholder="请输入风格描述"></textarea>
         </div>
+        <div class="form-group">
+          <label>图片地址</label>
+          <input type="text" class="form-input" id="formImage" placeholder="如 /style/korean_fresh.jpg">
+        </div>
       `;
       showModal('新增风格标签', bodyHTML, `
         <button class="btn btn-default" onclick="closeModal()">取消</button>
@@ -127,6 +133,7 @@
       const data = {
         StyleName: document.getElementById('formName').value,
         Description: document.getElementById('formDesc').value,
+        StyleImageURL: document.getElementById('formImage').value,
       };
       if (!data.StyleName) {
         showToast('风格名称不能为空', 'warning');
@@ -158,6 +165,10 @@
           <label>风格描述</label>
           <textarea class="form-textarea" id="formDesc">${escapeHTML(row.Description)}</textarea>
         </div>
+        <div class="form-group">
+          <label>图片地址</label>
+          <input type="text" class="form-input" id="formImage" value="${escapeHTML(row.StyleImageURL || '')}" placeholder="如 /style/korean_fresh.jpg">
+        </div>
       `;
       showModal('修改风格标签', bodyHTML, `
         <button class="btn btn-default" onclick="closeModal()">取消</button>
@@ -170,6 +181,7 @@
         StyleID: id,
         StyleName: document.getElementById('formName').value,
         Description: document.getElementById('formDesc').value,
+        StyleImageURL: document.getElementById('formImage').value,
       };
       if (!data.StyleName) {
         showToast('风格名称不能为空', 'warning');

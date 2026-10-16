@@ -47,11 +47,11 @@ styleRouter.get("/style/list", function (req, res) {
 
 
 styleRouter.post("/style/add", function (req, res) {
-    const { StyleName, Description = '' } = req.body;//post请求参数都存在这
+    const { StyleName, Description = '', StyleImageURL = '' } = req.body;//post请求参数都存在这
     if (!StyleName) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }//4001参数错误
 
-    let sql = 'INSERT INTO style (StyleName) VALUES (?)';
-    DB.connect(sql, [StyleName], (err, result) => {
+    let sql = 'INSERT INTO style (StyleName, StyleImageURL) VALUES (?, ?)';
+    DB.connect(sql, [StyleName, StyleImageURL], (err, result) => {
         if (err) { 
             res.json({ code: 5000, msg: '新增失败', data: null }); //5000数据库错误
             return; }
@@ -61,11 +61,11 @@ styleRouter.post("/style/add", function (req, res) {
 
 
 styleRouter.post("/style/update", function (req, res) {
-    const { StyleID, StyleName } = req.body;
+    const { StyleID, StyleName, StyleImageURL = '' } = req.body;
     if (!StyleID || !StyleName) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
 
-    let sql = 'UPDATE style SET StyleName=? WHERE StyleID = ?';
-    DB.connect(sql, [StyleName,+StyleID], (err) => {
+    let sql = 'UPDATE style SET StyleName=?, StyleImageURL=? WHERE StyleID = ?';
+    DB.connect(sql, [StyleName, StyleImageURL, +StyleID], (err) => {
         if (err) {
              res.json({ code: 5000, msg: '修改失败', data: null });
              return; }

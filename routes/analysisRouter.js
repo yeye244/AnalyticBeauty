@@ -6,12 +6,14 @@ module.exports = analysisRouter;
 
 // 复杂查询1：用户照片分析查询 User + Photo + AnalysisResult
 analysisRouter.get("/analysis/list", function (req, res) {
-    const { page = 1, pageSize = 10, user = '', skinTone = '', faceShape = '', order = 'DESC' } = req.query;
+    const { page = 1, pageSize = 10, user = '', skinTone = '', faceShape = '', order = 'DESC', startDate = '', endDate = '' } = req.query;
     let whereSql = 'WHERE 1=1';
     let params = [];
     if (user) { whereSql += ' AND u.NickName LIKE ?'; params.push(`%${user}%`); }
     if (skinTone) { whereSql += ' AND a.SkinTone = ?'; params.push(skinTone); }
     if (faceShape) { whereSql += ' AND a.FaceShape = ?'; params.push(faceShape); }
+    if (startDate) { whereSql += ' AND DATE(a.AnalysisTime) >= ?'; params.push(startDate); }
+    if (endDate) { whereSql += ' AND DATE(a.AnalysisTime) <= ?'; params.push(endDate); }
     const orderBy = order === 'ASC' ? 'ASC' : 'DESC';
 
     let countSql = `SELECT COUNT(*) as total FROM analysisresult a 

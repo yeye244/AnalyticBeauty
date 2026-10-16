@@ -110,7 +110,7 @@
           <td>${row.PhotoID}</td>
           <td>${row.UserID}</td>
           <td>${escapeHTML(row.UserName)}</td>
-          <td><div class="thumb-placeholder">图片</div></td>
+          <td>${row.ImageURL ? `<img class="thumb" src="${escapeHTML(row.ImageURL)}" alt="照片" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-placeholder',textContent:'无图'}))">` : '<div class="thumb-placeholder">无图</div>'}</td>
           <td class="text-muted text-sm">${escapeHTML(row.ImageURL)}</td>
           <td>${formatDate(row.UploadTime)}</td>
           <td><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-danger'}">${row.Status}</span></td>

@@ -86,12 +86,38 @@ recommendRouter.post("/recommend/delete", function (req, res) {
 
 // 复杂查询2：推荐详情查询 Recommendation + User + AnalysisResult
 recommendRouter.get("/recommend/detail", function (req, res) {
-    const { page = 1, pageSize = 10, user = '', type = '', status = '' } = req.query;
+    const { page = 1, pageSize = 10, user = '', type = '', status = '', startDate = '', endDate = '' } = req.query;
     let whereSql = 'WHERE 1=1';
     let params = [];
     if (user) { whereSql += ' AND u.NickName LIKE ?'; params.push(`%${user}%`); }
     if (type) { whereSql += ' AND r.RecommendationType = ?'; params.push(type); }
     if (status !== '') { whereSql += ' AND r.IsAccepted = ?'; params.push(status === '已采纳' ? 1 : 0); }
+    if (startDate) { whereSql += ' AND DATE(r.RecommendationTime) >= ?'; params.push(startDate); }
+    if (endDate) { whereSql += ' AND DATE(r.RecommendationTime) <= ?'; params.push(endDate); }
+
+    // 图表1：推荐总体统计（总数、采纳数、采纳率）
+    let statsSql = `SELECT COUNT(*) as total,
+                           SUM(CASE WHEN IsAccepted = 1 THEN 1 ELSE 0 END) as adopted
+                    FROM recommendation r
+                    LEFT JOIN user u ON r.Rec_UserID = u.UserID
+                    ${whereSql}`;
+    // 图表2：肤色分布（联查 analysisresult.SkinTone）
+    let skinSql = `SELECT a.SkinTone as skin, COUNT(*) as count
+                   FROM recommendation r
+                   LEFT JOIN analysisresult a ON r.Rec_AnalysisID = a.AnalysisID
+                   WHERE a.SkinTone IS NOT NULL
+                   GROUP BY a.SkinTone
+                   ORDER BY count DESC`;
+
+    let pageData = null, statsData = null, skinData = null, done = 0;
+    const TOTAL = 3;
+    function tryRespond() {
+        if (++done < TOTAL) return;
+        if (pageData === null || statsData === null || skinData === null) {
+            res.json({ code: 5000, msg: '查询失败', data: null }); return;
+        }
+        res.json({ code: 0, msg: 'success', data: { ...pageData, stats: statsData, skinStats: skinData } });
+    }
 
     let countSql = `SELECT COUNT(*) as total FROM recommendation r 
                     LEFT JOIN user u ON r.Rec_UserID = u.UserID 
@@ -110,12 +136,31 @@ recommendRouter.get("/recommend/detail", function (req, res) {
                        LEFT JOIN analysisresult a ON r.Rec_AnalysisID = a.AnalysisID 
                        ${whereSql} ORDER BY r.RecommendationTime DESC LIMIT ? OFFSET ?`;
         DB.connect(dataSql, [...params, +pageSize, +offset], (err2, list) => {
-            if (err2) { res.json({ code: 5000, msg: '查询失败', data: null }); return; }
+            if (err2) { pageData = null; tryRespond(); return; }
             const result = list.map(r => ({
                 ...r,
                 IsAdopted: r.IsAccepted === 1 ? '已采纳' : '未采纳'
             }));
-            res.json({ code: 0, msg: 'success', data: { list: result, total, page: +page, pageSize: +pageSize } });
+            pageData = { list: result, total, page: +page, pageSize: +pageSize };
+            tryRespond();
         });
+    });
+
+    // 统计卡片：总数、采纳数、采纳率
+    DB.connect(statsSql, params, (err, rows) => {
+        if (err) { statsData = null; tryRespond(); return; }
+        const r = rows[0] || { total: 0, adopted: 0 };
+        const total = Number(r.total) || 0;
+        const adopted = Number(r.adopted) || 0;
+        const rate = total > 0 ? Math.round((adopted / total) * 10000) / 100 : 0;
+        statsData = { total, adopted, rate: rate + '%' };
+        tryRespond();
+    });
+
+    // 肤色分布图表
+    DB.connect(skinSql, [], (err, rows) => {
+        if (err) { skinData = null; tryRespond(); return; }
+        skinData = (rows || []).map(s => ({ skin: s.skin, count: Number(s.count) }));
+        tryRespond();
     });
 });

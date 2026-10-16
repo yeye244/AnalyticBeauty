@@ -40,11 +40,11 @@ skincareRouter.get("/skincare/page", function (req, res) {
 });
 
 skincareRouter.post("/skincare/add", function (req, res) {
-    const { ProductName, Brand, Price, Effects = [], SkinTypes = [], adminId } = req.body;
+    const { ProductName, Brand, Price, Effects = [], SkinTypes = [], ProductImageURL = '', adminId } = req.body;
     if (!ProductName || !Brand || !Price) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     const mainEffect = Array.isArray(Effects) && Effects.length > 0 ? Effects[0] : '补水';
-    let sql = 'INSERT INTO skincareproduct (ProductName, Brand, Category, Price) VALUES (?, ?, ?, ?)';
-    DB.connect(sql, [ProductName, Brand, mainEffect, +Price], (err, result) => {
+    let sql = 'INSERT INTO skincareproduct (ProductName, Brand, Category, Price, ProductImageURL) VALUES (?, ?, ?, ?, ?)';
+    DB.connect(sql, [ProductName, Brand, mainEffect, +Price, ProductImageURL], (err, result) => {
         if (err) { 
             DB.log(adminId || 0, '新增', 'skincareproduct', `新增产品失败: ${err.message}`, '失败');
             res.json({ code: 5000, msg: '新增失败', data: null }); 
@@ -85,11 +85,11 @@ skincareRouter.post("/skincare/add", function (req, res) {
 });
 
 skincareRouter.post("/skincare/update", function (req, res) {
-    const { ProductID, ProductName, Brand, Price, Effects = [], SkinTypes = [], adminId } = req.body;
+    const { ProductID, ProductName, Brand, Price, Effects = [], SkinTypes = [], ProductImageURL = '', adminId } = req.body;
     if (!ProductID) { res.json({ code: 4001, msg: '参数不完整', data: null }); return; }
     const mainEffect = Array.isArray(Effects) && Effects.length > 0 ? Effects[0] : '补水';
-    let sql = 'UPDATE skincareproduct SET ProductName = ?, Brand = ?, Category = ?, Price = ? WHERE ProductID = ?';
-    DB.connect(sql, [ProductName, Brand, mainEffect, +Price, +ProductID], (err) => {
+    let sql = 'UPDATE skincareproduct SET ProductName = ?, Brand = ?, Category = ?, Price = ?, ProductImageURL = ? WHERE ProductID = ?';
+    DB.connect(sql, [ProductName, Brand, mainEffect, +Price, ProductImageURL, +ProductID], (err) => {
         if (err) { 
             DB.log(adminId || 0, '修改', 'skincareproduct', `修改产品失败，ID: ${ProductID}: ${err.message}`, '失败');
             res.json({ code: 5000, msg: '修改失败', data: null }); 

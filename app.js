@@ -34,6 +34,17 @@ app.use("/", bundleRouter);
 const recommendEffectRouter = require("./routes/recommendEffectRouter");
 app.use("/", recommendEffectRouter);
 
+const dashboardRouter = require("./routes/dashboardRouter");
+app.use("/", dashboardRouter);
+
 app.listen(8080, () => {
   console.log(`服务器已启动，请通过 http://127.0.0.1:8080 访问页面`);
+});
+
+// 兜底：避免远程数据库波动或未捕获异常导致整个服务退出
+process.on('uncaughtException', (err) => {
+  console.error('未捕获异常:', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('未处理的 Promise 拒绝:', reason);
 });

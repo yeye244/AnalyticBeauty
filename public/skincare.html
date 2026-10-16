@@ -67,6 +67,7 @@
             <thead>
               <tr>
                 <th>产品ID</th>
+                <th>图片</th>
                 <th>产品名称</th>
                 <th>品牌</th>
                 <th>功效</th>
@@ -116,13 +117,14 @@
       total = totalCount;
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(7);
+        tbody.innerHTML = emptyRow(8);
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
           <td>${row.ProductID}</td>
+          <td>${row.ProductImageURL ? `<img class="thumb" src="${escapeHTML(row.ProductImageURL)}" alt="产品图" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-placeholder',textContent:'无图'}))">` : '<div class="thumb-placeholder">无图</div>'}</td>
           <td class="text-bold">${escapeHTML(row.ProductName)}</td>
           <td>${escapeHTML(row.Brand)}</td>
           <td><span class="tag tag-primary">${escapeHTML(row.Effect)}</span></td>
@@ -162,6 +164,10 @@
             <input type="number" class="form-input" id="formPrice" placeholder="请输入价格">
           </div>
         </div>
+        <div class="form-group">
+          <label>图片地址</label>
+          <input type="text" class="form-input" id="formImage" placeholder="如 /product/sk2.jpg">
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label>功效（多选）</label>
@@ -198,6 +204,7 @@
         ProductName: document.getElementById('formName').value,
         Brand: document.getElementById('formBrand').value,
         Price: document.getElementById('formPrice').value,
+        ProductImageURL: document.getElementById('formImage').value,
         Effects: effects,
         SkinTypes: skinTypes,
       };
@@ -237,6 +244,10 @@
             <input type="number" class="form-input" id="formPrice" value="${row.Price}">
           </div>
         </div>
+        <div class="form-group">
+          <label>图片地址</label>
+          <input type="text" class="form-input" id="formImage" value="${escapeHTML(row.ProductImageURL || '')}" placeholder="如 /product/sk2.jpg">
+        </div>
         <div class="form-row">
           <div class="form-group">
             <label>功效（多选）</label>
@@ -266,6 +277,7 @@
         ProductName: document.getElementById('formName').value,
         Brand: document.getElementById('formBrand').value,
         Price: document.getElementById('formPrice').value,
+        ProductImageURL: document.getElementById('formImage').value,
         Effects: effects,
         SkinTypes: skinTypes,
       };

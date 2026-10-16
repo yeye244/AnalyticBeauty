@@ -38,6 +38,24 @@ userRouter.route("/user/login")
         });
     });
 
+// 用户列表（不分页，用于下拉/统计等场景）
+userRouter.get("/user/list", function (req, res) {
+    let sql = `SELECT UserID, UserAccount, NickName, UserGender, UserAge, SkinType, UserStatus
+               FROM user ORDER BY UserID`;
+    DB.connect(sql, [], (err, list) => {
+        if (err) { res.json({ code: 5000, msg: '查询失败', data: null }); return; }
+        const result = list.map(r => ({
+            UserID: r.UserID,
+            UserName: r.NickName,
+            Account: r.UserAccount,
+            Gender: r.UserGender,
+            SkinType: r.SkinType,
+            Status: r.UserStatus === 1 ? '正常' : '已禁用'
+        }));
+        res.json({ code: 0, msg: 'success', data: result });
+    });
+});
+
 // 用户管理分页查询
 userRouter.get("/user/page", function (req, res) {
     const { page = 1, pageSize = 10, name = '', status = '' } = req.query;
