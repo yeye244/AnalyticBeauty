@@ -13,7 +13,6 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-<<<<<<< HEAD
           <div class="page-heading">
             <h1 class="page-title">照片管理</h1>
             <p class="page-desc">统一管理用户上传的照片，为 AI 分析与个性化风格推荐提供数据支持。</p>
@@ -24,11 +23,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               新增照片
             </button>
-=======
-          <span class="page-title">照片管理</span>
-          <div class="page-actions">
-            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增照片</button>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -58,31 +52,9 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 照片网格 -->
         <div class="photo-grid" id="photoGrid"></div>
         <div class="pagination pagination-standalone" id="pagination"></div>
-=======
-        <!-- 表格 -->
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>照片ID</th>
-                <th>用户ID</th>
-                <th>用户</th>
-                <th>图片</th>
-                <th>图片地址</th>
-                <th>上传时间</th>
-                <th>状态</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-          <div class="pagination" id="pagination"></div>
-        </div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       </main>
     </div>
   </div>
@@ -90,19 +62,10 @@
   <script src="js/common.js"></script>
   <script>
     let currentPage = 1;
-<<<<<<< HEAD
     const pageSize = 12;
     let total = 0;
     let currentList = [];
 
-=======
-    const pageSize = 10;
-    let total = 0;
-    let currentList = [];
-
-    const mockData = [];
-
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     async function loadData(page = 1) {
       currentPage = page;
       const params = {
@@ -116,7 +79,6 @@
       const res = await fetchGet('/photo/page', params);
       if (res.code === 0) {
         currentList = res.data.list || [];
-<<<<<<< HEAD
         renderGrid(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
@@ -169,37 +131,6 @@
             <button class="btn-link danger" onclick="deletePhoto(${row.PhotoID})">删除</button>
           </div>
         </article>
-=======
-        renderTable(res.data.list || [], res.data.total || 0);
-      } else {
-        showToast(res.msg || '查询失败', 'error');
-        renderTable([], 0);
-      }
-    }
-
-    function renderTable(list, totalCount) {
-      total = totalCount;
-      const tbody = document.getElementById('tableBody');
-      if (!list.length) {
-        tbody.innerHTML = emptyRow(8);
-        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
-        return;
-      }
-      tbody.innerHTML = list.map(row => `
-        <tr>
-          <td>${row.PhotoID}</td>
-          <td>${row.UserID}</td>
-          <td>${escapeHTML(row.UserName)}</td>
-          <td><div class="thumb-placeholder">图片</div></td>
-          <td class="text-muted text-sm">${escapeHTML(row.ImageURL)}</td>
-          <td>${formatDate(row.UploadTime)}</td>
-          <td><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-danger'}">${row.Status}</span></td>
-          <td class="col-actions">
-            <button class="btn-link" onclick="showEditModal(${row.PhotoID})">修改</button>
-            <button class="btn-link danger" onclick="deletePhoto(${row.PhotoID})">删除</button>
-          </td>
-        </tr>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       `).join('');
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }

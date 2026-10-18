@@ -11,7 +11,6 @@
     <aside class="sidebar"></aside>
     <div class="main-wrapper">
       <header class="header"></header>
-<<<<<<< HEAD
       <main class="content log-page">
         <div class="page-header">
           <div class="page-heading">
@@ -21,46 +20,6 @@
         </div>
 
         <!-- 查询条件（作用于下方「操作日志记录」） -->
-=======
-      <main class="content">
-        <div class="page-header">
-          <span class="page-title">操作日志统计</span>
-        </div>
-
-        <!-- 统计卡片 -->
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-card">
-            <div class="stat-icon blue">📝</div>
-            <div class="stat-info">
-              <div class="stat-label">总操作数</div>
-              <div class="stat-value" id="statTotal">0</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon green">✓</div>
-            <div class="stat-info">
-              <div class="stat-label">今日操作</div>
-              <div class="stat-value" id="statToday">0</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon orange">👥</div>
-            <div class="stat-info">
-              <div class="stat-label">成功操作</div>
-              <div class="stat-value" id="statSuccess">0</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon pink">⏰</div>
-            <div class="stat-info">
-              <div class="stat-label">失败操作</div>
-              <div class="stat-value" id="statFail">0</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 查询条件 -->
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         <div class="search-bar">
           <div class="search-item">
             <label>管理员：</label>
@@ -87,7 +46,6 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 统计摘要（来自 /log/stats，全站累计） -->
         <div class="panel-title-row">
           <div class="panel-title">全站操作概览</div>
@@ -144,17 +102,6 @@
         <!-- 操作日志记录 -->
         <div class="table-wrapper log-table-wrapper">
           <table class="data-table log-table">
-=======
-        <!-- 管理员操作统计图表 -->
-        <div class="chart-container">
-          <div class="panel-title">各管理员操作次数统计</div>
-          <div class="bar-chart" id="adminChart"></div>
-        </div>
-
-        <!-- 日志表格 -->
-        <div class="table-wrapper">
-          <table class="data-table">
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>日志ID</th>
@@ -162,10 +109,7 @@
                 <th>操作类型</th>
                 <th>操作内容</th>
                 <th>操作时间</th>
-<<<<<<< HEAD
                 <th>操作结果</th>
-=======
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -181,7 +125,6 @@
     let currentPage = 1;
     const pageSize = 10;
 
-<<<<<<< HEAD
     // 管理员操作统计（由 /log/stats 接口动态填充，全站累计）
     let adminStats = [];
 
@@ -224,17 +167,6 @@
         admin: document.getElementById('searchAdmin').value,
         // 修复：后端 /log/page 读取的操作类型参数名是 type，原前端误传 op 导致筛选失效
         type: document.getElementById('searchOp').value,
-=======
-    // 管理员操作统计（由 /log/stats 接口动态填充）
-    let adminStats = [];
-
-    async function loadData(page = 1) {
-      currentPage = page;
-      const params = {
-        page, pageSize,
-        admin: document.getElementById('searchAdmin').value,
-        op: document.getElementById('searchOp').value,
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         date: document.getElementById('searchDate').value,
       };
       const res = await fetchGet('/log/page', params);
@@ -242,11 +174,7 @@
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
-<<<<<<< HEAD
         renderLoadError(res.msg || '数据加载失败，请稍后重试');
-=======
-        renderTable([], 0);
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       }
       loadStats();
     }
@@ -269,7 +197,6 @@
     function renderTable(list, total) {
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-<<<<<<< HEAD
         tbody.innerHTML = emptyTableRow(hasActiveFilter() ? '没有符合条件的日志记录' : '暂无操作日志');
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
@@ -282,26 +209,11 @@
           <td class="cell-content"><span class="cell-ellipsis" title="${escapeHTML(row.OperationContent)}">${escapeHTML(row.OperationContent)}</span></td>
           <td class="cell-time">${formatDate(row.OperationTime)}</td>
           <td class="cell-result"><span class="tag ${row.OperationResult === '成功' ? 'tag-success' : 'tag-danger'}">${escapeHTML(row.OperationResult)}</span></td>
-=======
-        tbody.innerHTML = emptyRow(5);
-        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
-        return;
-      }
-      const opColors = { '新增': 'tag-success', '修改': 'tag-warning', '删除': 'tag-danger', '查询': 'tag-info', '登录': 'tag-primary' };
-      tbody.innerHTML = list.map(row => `
-        <tr>
-          <td>${row.LogID}</td>
-          <td>${escapeHTML(row.AdminName)}</td>
-          <td><span class="tag ${opColors[row.OperationType] || 'tag-default'}">${escapeHTML(row.OperationType)}</span></td>
-          <td>${escapeHTML(row.OperationContent)}</td>
-          <td>${formatDate(row.OperationTime)}</td>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         </tr>
       `).join('');
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }
 
-<<<<<<< HEAD
     // 横向排名看板：条形长度对应真实操作次数（/log/stats 已按次数降序）
     function renderAdminChart() {
       const chart = document.getElementById('adminChart');
@@ -326,18 +238,6 @@
             <span class="rank-name" title="${name}">${name}</span>
             <span class="rank-track"><span class="rank-fill" style="width:${width}%;"></span></span>
             <span class="rank-value">${d.Cnt}<span class="rank-pct">次</span></span>
-=======
-    function renderAdminChart() {
-      const chart = document.getElementById('adminChart');
-      const maxVal = Math.max(...adminStats.map(d => d.Cnt), 1);
-      chart.innerHTML = adminStats.map(d => {
-        const height = (d.Cnt / maxVal * 100).toFixed(0);
-        return `
-          <div class="bar-item">
-            <div class="bar-value">${d.Cnt}</div>
-            <div class="bar" style="height:${height}%;"></div>
-            <div class="bar-label">${escapeHTML(d.AdminName)}</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         `;
       }).join('');

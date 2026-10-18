@@ -13,7 +13,6 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-<<<<<<< HEAD
           <div class="page-heading">
             <h1 class="page-title">分析结果查询</h1>
             <p class="page-desc">查询与管理平台生成的 AI 分析记录，快速查看相关分析结果。</p>
@@ -21,9 +20,6 @@
           <div class="page-actions">
             <span class="page-summary" id="analysisSummary">共 0 条分析记录</span>
           </div>
-=======
-          <span class="page-title">AI分析结果查询</span>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         </div>
 
         <!-- 查询条件 -->
@@ -36,17 +32,10 @@
             <label>肤色：</label>
             <select class="form-select" id="searchSkinTone">
               <option value="">全部</option>
-<<<<<<< HEAD
               <option value="暖白皮">暖白皮</option>
               <option value="冷白皮">冷白皮</option>
               <option value="自然色">自然色</option>
               <option value="暖黄皮">暖黄皮</option>
-=======
-              <option value="白皙">白皙</option>
-              <option value="自然">自然</option>
-              <option value="偏黄">偏黄</option>
-              <option value="小麦">小麦</option>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
           <div class="search-item">
@@ -54,16 +43,10 @@
             <select class="form-select" id="searchFaceShape">
               <option value="">全部</option>
               <option value="圆脸">圆脸</option>
-<<<<<<< HEAD
               <option value="鹅蛋脸">鹅蛋脸</option>
               <option value="心形脸">心形脸</option>
               <option value="方脸">方脸</option>
               <option value="长脸">长脸</option>
-=======
-              <option value="方脸">方脸</option>
-              <option value="瓜子脸">瓜子脸</option>
-              <option value="鹅蛋脸">鹅蛋脸</option>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
           <div class="search-item">
@@ -81,11 +64,7 @@
 
         <!-- 表格 -->
         <div class="table-wrapper">
-<<<<<<< HEAD
           <table class="data-table analysis-table">
-=======
-          <table class="data-table">
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>分析ID</th>
@@ -131,7 +110,6 @@
       }
     }
 
-<<<<<<< HEAD
     // 是否处于筛选状态（用于区分「暂无数据」与「无匹配结果」）
     function hasActiveFilter() {
       return !!(document.getElementById('searchUser').value.trim() ||
@@ -161,19 +139,11 @@
       if (summary) summary.textContent = `共 ${total} 条分析记录`;
       if (!list.length) {
         tbody.innerHTML = emptyRow(8, hasActiveFilter() ? '没有符合条件的分析记录' : '暂无分析记录');
-=======
-    function renderTable(list, total) {
-      currentList = list;
-      const tbody = document.getElementById('tableBody');
-      if (!list.length) {
-        tbody.innerHTML = emptyRow(8);
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
-<<<<<<< HEAD
           <td class="text-muted">${row.AnalysisID}</td>
           <td class="text-bold">${escapeHTML(row.UserName || '—')}</td>
           <td>${thumbCell(row)}</td>
@@ -181,15 +151,6 @@
           <td>${escapeHTML(row.FaceShape || '—')}</td>
           <td>${escapeHTML(row.BodyShape || '—')}</td>
           <td class="text-muted">${formatDate(row.AnalysisTime)}</td>
-=======
-          <td>${row.AnalysisID}</td>
-          <td class="text-bold">${escapeHTML(row.UserName)}</td>
-          <td><div class="thumb-placeholder">查看</div></td>
-          <td><span class="tag tag-primary">${escapeHTML(row.SkinTone)}</span></td>
-          <td>${escapeHTML(row.FaceShape)}</td>
-          <td>${escapeHTML(row.BodyShape)}</td>
-          <td>${formatDate(row.AnalysisTime)}</td>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <td><button class="btn-link" onclick="showDetail(${row.AnalysisID})">详情</button></td>
         </tr>
       `).join('');
@@ -199,7 +160,6 @@
     function showDetail(id) {
       const row = currentList.find(r => r.AnalysisID === id);
       if (!row) return;
-<<<<<<< HEAD
       const photo = row.PhotoURL
         ? `<img src="${escapeHTML(row.PhotoURL)}" alt="分析照片"
                 onerror="this.style.display='none';this.parentNode.querySelector('.thumb-fallback').style.display='flex';">
@@ -227,19 +187,6 @@
           </div>
         </div>
         <div class="detail-note">
-=======
-      const bodyHTML = `
-        <div class="desc-list">
-          <div class="desc-item"><span class="desc-label">分析ID</span><span class="desc-value">${row.AnalysisID}</span></div>
-          <div class="desc-item"><span class="desc-label">用户昵称</span><span class="desc-value">${escapeHTML(row.UserName)}</span></div>
-          <div class="desc-item"><span class="desc-label">照片地址</span><span class="desc-value">${escapeHTML(row.PhotoURL)}</span></div>
-          <div class="desc-item"><span class="desc-label">分析时间</span><span class="desc-value">${formatDate(row.AnalysisTime)}</span></div>
-          <div class="desc-item"><span class="desc-label">肤色</span><span class="desc-value">${escapeHTML(row.SkinTone)}</span></div>
-          <div class="desc-item"><span class="desc-label">脸型</span><span class="desc-value">${escapeHTML(row.FaceShape)}</span></div>
-          <div class="desc-item"><span class="desc-label">体型</span><span class="desc-value">${escapeHTML(row.BodyShape)}</span></div>
-        </div>
-        <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:4px;font-size:13px;color:var(--text-3);">
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <strong>SQL来源：</strong>SELECT a.*, u.UserName, p.ImageURL FROM AnalysisResult a LEFT JOIN User u ON a.UserID = u.UserID LEFT JOIN Photo p ON a.PhotoID = p.PhotoID
         </div>
       `;

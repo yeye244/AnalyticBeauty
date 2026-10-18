@@ -13,7 +13,6 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-<<<<<<< HEAD
           <div class="page-heading">
             <h1 class="page-title">产品信息管理</h1>
             <p class="page-desc">统一维护护肤产品资料、功效与适用肤质。</p>
@@ -24,16 +23,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               新增产品
             </button>
-=======
-          <span class="page-title">护肤产品管理</span>
-          <div class="page-actions">
-            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增产品</button>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <a href="bundle-detail.html" class="btn btn-default">查看套装详情</a>
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 搜索栏（多条件查询） -->
         <div class="search-bar">
           <div class="search-item">
@@ -48,35 +41,12 @@
           </div>
           <div class="search-item">
             <label>适用肤质：</label>
-=======
-        <!-- 搜索栏（多条件查询 - 评优修改点） -->
-        <div class="search-bar">
-          <div class="search-item">
-            <label>品牌：</label>
-            <input type="text" class="form-input" id="searchBrand" placeholder="如：A品牌">
-          </div>
-          <div class="search-item">
-            <label>价格范围：</label>
-            <input type="number" class="form-input" id="searchPriceMin" placeholder="最低" style="width:80px;">
-            <span>~</span>
-            <input type="number" class="form-input" id="searchPriceMax" placeholder="最高" style="width:80px;">
-          </div>
-          <div class="search-item">
-            <label>肤质：</label>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <select class="form-select" id="searchSkinType">
               <option value="">全部</option>
               <option value="干皮">干皮</option>
               <option value="油皮">油皮</option>
-<<<<<<< HEAD
               <option value="混合皮">混合皮</option>
               <option value="敏感肌">敏感肌</option>
-=======
-              <option value="混干">混干</option>
-              <option value="混油">混油</option>
-              <option value="敏感肌">敏感肌</option>
-              <option value="所有肤质">所有肤质</option>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
           <div class="search-item">
@@ -84,7 +54,6 @@
             <select class="form-select" id="searchEffect">
               <option value="">全部</option>
               <option value="补水">补水</option>
-<<<<<<< HEAD
               <option value="保湿">保湿</option>
               <option value="美白">美白</option>
               <option value="提亮">提亮</option>
@@ -94,12 +63,6 @@
               <option value="清洁">清洁</option>
               <option value="温和">温和</option>
               <option value="防晒">防晒</option>
-=======
-              <option value="美白">美白</option>
-              <option value="抗老">抗老</option>
-              <option value="控油">控油</option>
-              <option value="修护">修护</option>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </select>
           </div>
           <div class="search-actions">
@@ -110,11 +73,7 @@
 
         <!-- 表格 -->
         <div class="table-wrapper">
-<<<<<<< HEAD
           <table class="data-table skincare-table">
-=======
-          <table class="data-table">
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <thead>
               <tr>
                 <th>产品ID</th>
@@ -122,11 +81,7 @@
                 <th>品牌</th>
                 <th>功效</th>
                 <th>价格</th>
-<<<<<<< HEAD
                 <th>适用肤质</th>
-=======
-                <th>肤质</th>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
                 <th>操作</th>
               </tr>
             </thead>
@@ -145,13 +100,9 @@
     let total = 0;
     let currentList = [];
 
-<<<<<<< HEAD
     // 产品功效 / 适用肤质的真实取值（与数据库 skincareeffecttag、skincareskintype 实际存储值一致）
     const EFFECT_OPTIONS = ['补水', '保湿', '美白', '提亮', '修护', '舒缓', '抗衰', '清洁', '温和', '防晒'];
     const SKIN_TYPE_OPTIONS = ['干皮', '油皮', '混合皮', '敏感肌'];
-=======
-    const mockData = [];
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
     async function loadData(page = 1) {
       currentPage = page;
@@ -169,7 +120,6 @@
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
-<<<<<<< HEAD
         currentList = [];
         renderLoadError(res.msg || '数据加载失败，请稍后重试');
       }
@@ -195,37 +145,17 @@
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
         tbody.innerHTML = emptyRow(7, hasActiveFilter() ? '没有符合条件的产品' : '暂无产品数据');
-=======
-        renderTable([], 0);
-      }
-    }
-
-    function renderTable(list, totalCount) {
-      total = totalCount;
-      const tbody = document.getElementById('tableBody');
-      if (!list.length) {
-        tbody.innerHTML = emptyRow(7);
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
-<<<<<<< HEAD
           <td class="cell-id">${row.ProductID}</td>
           <td class="cell-name">${escapeHTML(row.ProductName)}</td>
           <td class="cell-brand">${escapeHTML(row.Brand)}</td>
           <td>${renderTagList(row.Effect, 'tag-primary')}</td>
           <td class="cell-price">¥${escapeHTML(row.Price)}</td>
           <td>${renderTagList(row.SkinType, 'tag-default')}</td>
-=======
-          <td>${row.ProductID}</td>
-          <td class="text-bold">${escapeHTML(row.ProductName)}</td>
-          <td>${escapeHTML(row.Brand)}</td>
-          <td><span class="tag tag-primary">${escapeHTML(row.Effect)}</span></td>
-          <td class="text-bold text-danger">¥${row.Price}</td>
-          <td><span class="tag tag-info">${escapeHTML(row.SkinType)}</span></td>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <td class="col-actions">
             <button class="btn-link" onclick="showEditModal(${row.ProductID})">修改</button>
             <button class="btn-link danger" onclick="deleteProduct(${row.ProductID})">删除</button>
@@ -235,7 +165,6 @@
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
     }
 
-<<<<<<< HEAD
     // 加载失败：明确提示，不伪装成空数据
     function renderLoadError(msg) {
       total = 0;
@@ -245,8 +174,6 @@
       document.getElementById('pagination').innerHTML = '';
     }
 
-=======
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     function resetSearch() {
       document.getElementById('searchBrand').value = '';
       document.getElementById('searchPriceMin').value = '';
@@ -276,29 +203,13 @@
           <div class="form-group">
             <label>功效（多选）</label>
             <div class="checkbox-group">
-<<<<<<< HEAD
               ${EFFECT_OPTIONS.map(e => `<label><input type="checkbox" name="effect" value="${e}"> ${e}</label>`).join('')}
-=======
-              <label><input type="checkbox" name="effect" value="补水"> 补水</label>
-              <label><input type="checkbox" name="effect" value="美白"> 美白</label>
-              <label><input type="checkbox" name="effect" value="抗老"> 抗老</label>
-              <label><input type="checkbox" name="effect" value="控油"> 控油</label>
-              <label><input type="checkbox" name="effect" value="修护"> 修护</label>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
           </div>
           <div class="form-group">
             <label>适用肤质（多选）</label>
             <div class="checkbox-group">
-<<<<<<< HEAD
               ${SKIN_TYPE_OPTIONS.map(s => `<label><input type="checkbox" name="skinType" value="${s}"> ${s}</label>`).join('')}
-=======
-              <label><input type="checkbox" name="skinType" value="干皮"> 干皮</label>
-              <label><input type="checkbox" name="skinType" value="油皮"> 油皮</label>
-              <label><input type="checkbox" name="skinType" value="混干"> 混干</label>
-              <label><input type="checkbox" name="skinType" value="混油"> 混油</label>
-              <label><input type="checkbox" name="skinType" value="敏感肌"> 敏感肌</label>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
           </div>
         </div>
@@ -359,21 +270,13 @@
           <div class="form-group">
             <label>功效（多选）</label>
             <div class="checkbox-group">
-<<<<<<< HEAD
               ${EFFECT_OPTIONS.map(e => `<label><input type="checkbox" name="effect" value="${e}" ${(row.Effect || '').includes(e) ? 'checked' : ''}> ${e}</label>`).join('')}
-=======
-              ${['补水','美白','抗老','控油','修护'].map(e => `<label><input type="checkbox" name="effect" value="${e}" ${(row.Effect || '').includes(e) ? 'checked' : ''}> ${e}</label>`).join('')}
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
           </div>
           <div class="form-group">
             <label>适用肤质（多选）</label>
             <div class="checkbox-group">
-<<<<<<< HEAD
               ${SKIN_TYPE_OPTIONS.map(s => `<label><input type="checkbox" name="skinType" value="${s}" ${(row.SkinType || '').includes(s) ? 'checked' : ''}> ${s}</label>`).join('')}
-=======
-              ${['干皮','油皮','混干','混油','敏感肌'].map(s => `<label><input type="checkbox" name="skinType" value="${s}" ${(row.SkinType || '').includes(s) ? 'checked' : ''}> ${s}</label>`).join('')}
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
           </div>
         </div>

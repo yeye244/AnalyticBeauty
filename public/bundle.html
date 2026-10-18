@@ -13,7 +13,6 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-<<<<<<< HEAD
           <div class="page-heading">
             <h1 class="page-title">套装管理</h1>
             <p class="page-desc">统一维护护肤套装及其包含的产品组合。</p>
@@ -24,11 +23,6 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               新增套装
             </button>
-=======
-          <span class="page-title">套装管理</span>
-          <div class="page-actions">
-            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增套装</button>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
 
@@ -43,29 +37,9 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 套装卡片：套餐价 + 真实关联产品组合 -->
         <div class="bundle-grid" id="bundleGrid"></div>
         <div class="pagination pagination-standalone" id="pagination"></div>
-=======
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>套装ID</th>
-                <th>套装名称</th>
-                <th>原价</th>
-                <th>折扣</th>
-                <th>套餐价</th>
-                <th>产品数量</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-          <div class="pagination" id="pagination"></div>
-        </div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       </main>
     </div>
   </div>
@@ -77,20 +51,16 @@
     let total = 0;
     let products = [];
     let currentItems = [];
-<<<<<<< HEAD
     let currentList = [];   // 当前页套装列表（供修改弹窗直接读取，避免二次请求）
 
     function hasActiveFilter() {
       return document.getElementById('searchName').value.trim() !== '';
     }
-=======
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
     async function loadData(page = 1) {
       currentPage = page;
       const params = { page, pageSize, name: document.getElementById('searchName').value };
       const res = await fetchGet('/bundle/page', params);
-<<<<<<< HEAD
       if (res.code !== 0) {
         showToast(res.msg || '查询失败', 'error');
         currentList = [];
@@ -167,41 +137,6 @@
       document.getElementById('pagination').innerHTML = '';
     }
 
-=======
-      if (res.code === 0) {
-        renderTable(res.data.list || [], res.data.total || 0);
-      } else {
-        showToast(res.msg || '查询失败', 'error');
-        renderTable([], 0);
-      }
-    }
-
-    function renderTable(list, totalCount) {
-      total = totalCount;
-      const tbody = document.getElementById('tableBody');
-      if (!list.length) {
-        tbody.innerHTML = emptyRow(7);
-        renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
-        return;
-      }
-      tbody.innerHTML = list.map(row => `
-        <tr>
-          <td>${row.BundleID}</td>
-          <td class="text-bold">${escapeHTML(row.BundleName)}</td>
-          <td>¥${row.OriginalPrice || '-'}</td>
-          <td><span class="tag tag-success">${row.DiscountLabel || '-'}</span></td>
-          <td class="text-bold text-danger">¥${row.TotalPrice}</td>
-          <td>${row.ProductCount}</td>
-          <td class="col-actions">
-            <button class="btn-link" onclick="showEditModal(${row.BundleID})">修改</button>
-            <button class="btn-link danger" onclick="deleteBundle(${row.BundleID})">删除</button>
-          </td>
-        </tr>
-      `).join('');
-      renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
-    }
-
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     async function loadProducts() {
       const res = await fetchGet('/bundle/products');
       if (res.code === 0) {
@@ -264,7 +199,6 @@
     }
 
     function renderProductList() {
-<<<<<<< HEAD
       const box = document.getElementById('productList');
       if (!box) return;
       if (!currentItems.length) {
@@ -331,134 +265,16 @@
     function showAddModal() {
       currentItems = [];
       showModal('新增套装', bundleFormHTML(null), BUNDLE_FORM_FOOTER);
-=======
-      const tbody = document.getElementById('productList');
-      if (!currentItems.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无产品</td></tr>';
-        return;
-      }
-      tbody.innerHTML = currentItems.map(item => `
-        <tr>
-          <td>${escapeHTML(item.ProductName)}</td>
-          <td>${escapeHTML(item.Brand)}</td>
-          <td>¥${item.Price}</td>
-          <td>${item.Quantity}</td>
-          <td><button class="btn-link danger" onclick="removeProduct(${item.ProductID})">删除</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function showAddModal() {
-      currentItems = [];
-      showModal('新增套装', `
-        <form id="bundleForm" onsubmit="return handleSubmit(event)">
-          <input type="hidden" id="editBundleID" value="">
-          <div class="form-group">
-            <label>套装名称 <span class="required">*</span></label>
-            <input type="text" class="form-input" id="bundleName" placeholder="请输入套装名称" required>
-          </div>
-          <div class="form-group">
-            <label>原价</label>
-            <input type="number" class="form-input" id="originalPrice" placeholder="自动计算或手动输入" step="0.01">
-          </div>
-          <div class="form-group">
-            <label>折扣（优惠百分比）</label>
-            <input type="number" class="form-input" id="discount" placeholder="例如：15 表示优惠15%（8.5折）" step="0.01" onchange="calculateBundlePrice()">
-          </div>
-          <div class="form-group">
-            <label>套餐价 <span class="required">*</span></label>
-            <input type="number" class="form-input" id="bundlePrice" placeholder="请输入套餐价" step="0.01" required>
-          </div>
-          <div class="form-group">
-            <label>包含产品</label>
-            <div style="display:flex;gap:8px;margin-bottom:8px;">
-              <select class="form-select" id="productSelect" style="flex:1;">
-                <option value="">请选择产品</option>
-              </select>
-              <input type="number" class="form-input" id="productQuantity" placeholder="数量" value="1" style="width:80px;">
-              <button type="button" class="btn btn-primary" onclick="addProduct()">添加</button>
-            </div>
-            <table class="data-table" style="width:100%;">
-              <thead>
-                <tr><th>产品名称</th><th>品牌</th><th>单价</th><th>数量</th><th>操作</th></tr>
-              </thead>
-              <tbody id="productList"></tbody>
-            </table>
-          </div>
-        </form>
-      `, `
-        <button class="btn btn-default" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
-      `);
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       renderProductList();
       loadProducts();
     }
 
     async function showEditModal(id) {
-<<<<<<< HEAD
       const bundle = currentList.find(b => b.BundleID == id);
       if (!bundle) { showToast('未找到该套装，请刷新后重试', 'error'); return; }
       const res = await fetchGet('/bundle/items', { bundleId: id });
       currentItems = (res.code === 0 && Array.isArray(res.data)) ? res.data : [];
       showModal('修改套装', bundleFormHTML(bundle), BUNDLE_FORM_FOOTER);
-=======
-      const res = await fetchGet('/bundle/items', { bundleId: id });
-      if (res.code === 0) {
-        currentItems = res.data.map(i => ({ ...i, Quantity: i.Quantity }));
-      } else {
-        currentItems = [];
-      }
-
-      const res2 = await fetchGet('/bundle/page', { page: 1, pageSize: 100, name: '' });
-      const bundle = res2.data.list.find(b => b.BundleID == id);
-      if (!bundle) return;
-
-      const originalPrice = bundle.OriginalPrice || '';
-      const discount = bundle.Discount || '';
-      const bundlePrice = bundle.TotalPrice;
-
-      showModal('修改套装', `
-        <form id="bundleForm" onsubmit="return handleSubmit(event)">
-          <input type="hidden" id="editBundleID" value="${bundle.BundleID}">
-          <div class="form-group">
-            <label>套装名称 <span class="required">*</span></label>
-            <input type="text" class="form-input" id="bundleName" placeholder="请输入套装名称" value="${escapeHTML(bundle.BundleName)}" required>
-          </div>
-          <div class="form-group">
-            <label>原价</label>
-            <input type="number" class="form-input" id="originalPrice" placeholder="自动计算或手动输入" step="0.01" value="${originalPrice}">
-          </div>
-          <div class="form-group">
-            <label>折扣（优惠百分比）</label>
-            <input type="number" class="form-input" id="discount" placeholder="例如：15 表示优惠15%（8.5折）" step="0.01" value="${discount}" onchange="calculateBundlePrice()">
-          </div>
-          <div class="form-group">
-            <label>套餐价 <span class="required">*</span></label>
-            <input type="number" class="form-input" id="bundlePrice" placeholder="请输入套餐价" step="0.01" value="${bundlePrice}" required>
-          </div>
-          <div class="form-group">
-            <label>包含产品</label>
-            <div style="display:flex;gap:8px;margin-bottom:8px;">
-              <select class="form-select" id="productSelect" style="flex:1;">
-                <option value="">请选择产品</option>
-              </select>
-              <input type="number" class="form-input" id="productQuantity" placeholder="数量" value="1" style="width:80px;">
-              <button type="button" class="btn btn-primary" onclick="addProduct()">添加</button>
-            </div>
-            <table class="data-table" style="width:100%;">
-              <thead>
-                <tr><th>产品名称</th><th>品牌</th><th>单价</th><th>数量</th><th>操作</th></tr>
-              </thead>
-              <tbody id="productList"></tbody>
-            </table>
-          </div>
-        </form>
-      `, `
-        <button class="btn btn-default" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" onclick="handleSubmit()">保存</button>
-      `);
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       renderProductList();
       loadProducts();
     }
@@ -496,7 +312,6 @@
       }
     }
 
-<<<<<<< HEAD
     function deleteBundle(id) {
       confirmDialog('确定要删除该套装吗？删除后其中的产品关联也会一并移除。', async () => {
         const res = await fetchAPI('/bundle/delete', { method: 'POST', body: { BundleID: id } });
@@ -507,17 +322,6 @@
           showToast(res.msg || '删除失败', 'error');
         }
       });
-=======
-    async function deleteBundle(id) {
-      if (!confirm('确定要删除该套装吗？')) return;
-      const res = await fetchAPI('/bundle/delete', { method: 'POST', body: { BundleID: id } });
-      if (res.code === 0) {
-        showToast('删除成功', 'success');
-        loadData(currentPage);
-      } else {
-        showToast(res.msg || '删除失败', 'error');
-      }
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     }
 
     function resetSearch() {

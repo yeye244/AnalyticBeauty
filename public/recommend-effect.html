@@ -11,7 +11,6 @@
     <aside class="sidebar"></aside>
     <div class="main-wrapper">
       <header class="header"></header>
-<<<<<<< HEAD
       <main class="content effect-page">
         <div class="page-header">
           <div class="page-heading">
@@ -21,11 +20,6 @@
           <div class="page-actions">
             <span class="page-summary" id="effectSummary">共 0 条推荐记录</span>
           </div>
-=======
-      <main class="content">
-        <div class="page-header">
-          <span class="page-title">推荐效果分析</span>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         </div>
 
         <div class="search-bar">
@@ -49,60 +43,39 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 第一层：核心指标摘要（数值均来自 /recommend/effect 的 stats 真实聚合） -->
         <div class="stats-row">
           <div class="stat-card">
             <div class="stat-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
             </div>
-=======
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-icon">📊</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <div class="stat-info">
               <div class="stat-value" id="totalCount">0</div>
               <div class="stat-label">推荐总数</div>
             </div>
           </div>
-<<<<<<< HEAD
           <div class="stat-card">
             <div class="stat-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/></svg>
             </div>
-=======
-          <div class="stat-card stat-success">
-            <div class="stat-icon">✅</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <div class="stat-info">
               <div class="stat-value" id="acceptedCount">0</div>
               <div class="stat-label">已采纳</div>
             </div>
           </div>
-<<<<<<< HEAD
           <div class="stat-card">
             <div class="stat-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></svg>
             </div>
-=======
-          <div class="stat-card stat-danger">
-            <div class="stat-icon">❌</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <div class="stat-info">
               <div class="stat-value" id="rejectedCount">0</div>
               <div class="stat-label">未采纳</div>
             </div>
           </div>
-<<<<<<< HEAD
           <div class="stat-card">
             <div class="stat-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
             </div>
-=======
-          <div class="stat-card stat-warning">
-            <div class="stat-icon">📈</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             <div class="stat-info">
               <div class="stat-value" id="acceptRate">0%</div>
               <div class="stat-label">采纳率</div>
@@ -110,10 +83,7 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 第二层：核心图表（同源数据并列阅读） -->
-=======
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
         <div class="grid-row">
           <div class="card">
             <div class="card-header">
@@ -126,11 +96,7 @@
 
           <div class="card">
             <div class="card-header">
-<<<<<<< HEAD
               <h3>分类采纳率对比</h3>
-=======
-              <h3>采纳率对比</h3>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
             <div class="card-body">
               <div id="rateChart" class="chart-row-horizontal"></div>
@@ -138,7 +104,6 @@
           </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 第二层续：时间序列（真实按天聚合） -->
         <div class="card">
           <div class="card-header">
@@ -158,37 +123,6 @@
           </div>
           <div class="card-body">
             <div class="rank-list" id="userRankList"></div>
-=======
-        <div class="card">
-          <div class="card-header">
-            <h3>推荐趋势（近30天）</h3>
-          </div>
-          <div class="card-body">
-            <div id="trendChart" class="chart-row"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3>用户推荐排行</h3>
-          </div>
-          <div class="card-body">
-            <div id="userRankChart" class="user-rank-chart"></div>
-            <div style="margin-top:20px;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>排名</th>
-                    <th>用户昵称</th>
-                    <th>推荐总数</th>
-                    <th>已采纳</th>
-                    <th>采纳率</th>
-                  </tr>
-                </thead>
-                <tbody id="userTableBody"></tbody>
-              </table>
-            </div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         </div>
       </main>
@@ -208,32 +142,21 @@
         renderStats(res.data);
       } else {
         showToast(res.msg || '查询失败', 'error');
-<<<<<<< HEAD
         renderStats({ stats: [], trend: [], userStats: [] });
-=======
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
       }
     }
 
     function renderStats(data) {
-<<<<<<< HEAD
       const stats = data.stats || [];
       const total = stats.reduce((sum, s) => sum + s.Total, 0);
       const accepted = stats.reduce((sum, s) => sum + s.Accepted, 0);
       const rejected = stats.reduce((sum, s) => sum + s.Rejected, 0);
       const rate = total > 0 ? (accepted / total * 100).toFixed(1) : '0.0';
-=======
-      const total = (data.stats || []).reduce((sum, s) => sum + s.Total, 0);
-      const accepted = (data.stats || []).reduce((sum, s) => sum + s.Accepted, 0);
-      const rejected = (data.stats || []).reduce((sum, s) => sum + s.Rejected, 0);
-      const rate = total > 0 ? (accepted / total * 100).toFixed(1) : 0;
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
 
       document.getElementById('totalCount').textContent = total;
       document.getElementById('acceptedCount').textContent = accepted;
       document.getElementById('rejectedCount').textContent = rejected;
       document.getElementById('acceptRate').textContent = rate + '%';
-<<<<<<< HEAD
       document.getElementById('effectSummary').textContent = `共 ${total} 条推荐记录`;
 
       renderTypeChart(stats);
@@ -251,28 +174,11 @@
         <div class="bar-item">
           <div class="bar-value">${s.Total}</div>
           <div class="bar" style="height:${(s.Total / maxVal * 100).toFixed(0)}%;background:${i === 0 ? 'var(--accent)' : 'var(--primary)'};"></div>
-=======
-
-      renderTypeChart(data.stats || []);
-      renderRateChart(data.stats || []);
-      renderTrendChart(data.trend || []);
-      renderUserRankChart(data.userStats || []);
-      renderUserTable(data.userStats || []);
-    }
-
-    function renderTypeChart(stats) {
-      const maxVal = Math.max(...stats.map(s => s.Total), 1);
-      document.getElementById('typeChart').innerHTML = stats.map(s => `
-        <div class="bar-item">
-          <div class="bar-value">${s.Total}</div>
-          <div class="bar" style="height:${(s.Total / maxVal * 100).toFixed(0)}%;background:#409EFF;"></div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           <div class="bar-label">${escapeHTML(s.Type)}</div>
         </div>
       `).join('');
     }
 
-<<<<<<< HEAD
     // 采纳率对比：标签较长且需显示占比与分数，采用横向条形
     function renderRateChart(stats) {
       const el = document.getElementById('rateChart');
@@ -284,16 +190,6 @@
           <div class="h-bar-track">
             <div class="h-bar-fill" style="width:${s.AcceptRate}%;background:${s.AcceptRate === topRate ? 'var(--accent)' : 'var(--primary)'};">
               <span class="h-bar-pct">${s.AcceptRate}%</span>
-=======
-    function renderRateChart(stats) {
-      const colors = ['gradient-green', 'gradient-blue', 'gradient-orange', 'gradient-pink'];
-      document.getElementById('rateChart').innerHTML = stats.map((s, i) => `
-        <div class="h-bar-item">
-          <div class="h-bar-label">${escapeHTML(s.Type)}</div>
-          <div class="h-bar-track">
-            <div class="h-bar-fill ${colors[i % colors.length]}" style="width:${s.AcceptRate}%;">
-              <span style="color:#fff;font-size:12px;font-weight:600;">${s.AcceptRate}%</span>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
             </div>
           </div>
           <div class="h-bar-value">${s.Accepted}/${s.Total}</div>
@@ -309,7 +205,6 @@
       return m + '-' + day;
     }
 
-<<<<<<< HEAD
     // 折线图：坐标上限取整避免小数刻度，纵轴自 0 起，不裁剪真实波动
     function niceMax(v) {
       const step = Math.ceil(v / 4) || 1;
@@ -402,69 +297,11 @@
               <span class="rank-item-track"><span class="rank-item-fill" style="width:${width}%;"></span></span>
               <span class="rank-item-stat">推荐 ${u.TotalRecommend} 次 · 采纳 ${u.Accepted} 次</span>
             </div>
-=======
-    function renderTrendChart(trend) {
-      if (!trend.length) {
-        document.getElementById('trendChart').innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
-        return;
-      }
-      const maxVal = Math.max(...trend.map(t => parseInt(t.Total)), 1);
-      document.getElementById('trendChart').innerHTML = trend.map(t => `
-        <div class="bar-item" style="min-width:0;">
-          <div class="bar-value" style="font-size:11px;">${t.Total}</div>
-          <div class="bar" style="height:${(parseInt(t.Total) / maxVal * 100).toFixed(0)}%;background:#909399;width:24px;"></div>
-          <div class="bar-label" style="font-size:11px;">${formatDate(t.Date)}</div>
-        </div>
-      `).join('');
-    }
-
-    function renderUserRankChart(list) {
-      const chart = document.getElementById('userRankChart');
-      if (!list.length) {
-        chart.innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
-        return;
-      }
-      const topList = list.slice(0, 10);
-      const maxVal = Math.max(...topList.map(u => u.TotalRecommend), 1);
-      chart.innerHTML = topList.map((u, i) => {
-        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
-        const height = (u.TotalRecommend / maxVal * 100).toFixed(0);
-        const rate = u.TotalRecommend > 0 ? (u.Accepted / u.TotalRecommend * 100).toFixed(1) : 0;
-        return `
-          <div class="user-bar-item">
-            <div class="user-bar-tooltip">${escapeHTML(u.UserName || '-')}：${u.TotalRecommend}次推荐，采纳率${rate}%</div>
-            <div class="user-value">${u.TotalRecommend}</div>
-            <div class="user-bar ${rankClass}" style="height:${height}%;"></div>
-            <div class="user-name" title="${escapeHTML(u.UserName || '-')}">${escapeHTML(u.UserName || '-')}</div>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
           </div>
         `;
       }).join('');
     }
 
-<<<<<<< HEAD
-=======
-    function renderUserTable(list) {
-      const tbody = document.getElementById('userTableBody');
-      if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无数据</td></tr>';
-        return;
-      }
-      tbody.innerHTML = list.map((item, index) => {
-        const rate = item.TotalRecommend > 0 ? (item.Accepted / item.TotalRecommend * 100).toFixed(1) : 0;
-        return `
-          <tr>
-            <td>${index + 1}</td>
-            <td class="text-bold">${escapeHTML(item.UserName || '-')}</td>
-            <td>${item.TotalRecommend}</td>
-            <td>${item.Accepted}</td>
-            <td><span class="tag ${rate >= 50 ? 'tag-success' : 'tag-warning'}">${rate}%</span></td>
-          </tr>
-        `;
-      }).join('');
-    }
-
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
     function resetSearch() {
       document.getElementById('searchType').value = '';
       document.getElementById('startDate').value = '';
@@ -476,8 +313,4 @@
     loadData();
   </script>
 </body>
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> fb9b5c948869b66351d9e418a6564a99e76ab0ce
