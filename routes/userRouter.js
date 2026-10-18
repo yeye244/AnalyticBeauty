@@ -86,3 +86,26 @@ userRouter.get("/user/page", function (req, res) {
         });
     });
 });
+
+// 新增用户（后台手动录入）
+userRouter.post("/user/add", function (req, res) {
+    const { UserName, Account, Phone = '', Gender = '女', SkinType = '混合皮', Password = '123456', adminId } = req.body;
+    if (!UserName || !Account) { res.json({ code: 4001, msg: '昵称和账号不能为空', data: null }); return; }
+
+    // 账号唯一：user 表 UserAccount 有唯一索引，先查再插，给出明确提示
+    DB.connect('SELECT UserID FROM `user` WHERE UserAccount = ?', [Account], (err, rows) => {
+        if (err) { res.json({ code: 5000, msg: '查询失败', data: null }); return; }
+        if (rows.length) { res.json({ code: 4002, msg: '该账号已存在', data: null }); return; }
+
+        let sql = 'INSERT INTO `user` (UserAccount, UserPWD, NickName, UserGender, SkinType, Phone, UserStatus, RegisterSource) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        DB.connect(sql, [Account, md5(Password), UserName, Gender, SkinType, Phone, 1, '后台录入'], (err2, result) => {
+            if (err2) {
+                DB.log(adminId, '新增', 'user', `新增用户失败，账号: ${Account}，原因: ${err2.message}`, '失败');
+                res.json({ code: 5000, msg: '新增失败：' + err2.message, data: null });
+                return;
+            }
+            DB.log(adminId, '新增', 'user', `新增用户，ID: ${result.insertId}，昵称: ${UserName}，账号: ${Account}`, '成功');
+            res.json({ code: 0, msg: '新增成功', data: { UserID: result.insertId } });
+        });
+    });
+});

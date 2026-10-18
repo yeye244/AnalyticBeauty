@@ -139,11 +139,11 @@
         <div class="form-row">
           <div class="form-group">
             <label>昵称 <span class="required">*</span></label>
-            <input type="text" class="form-input" id="formName" placeholder="请输入用户昵称">
+            <input type="text" class="form-input" id="formName" maxlength="20" placeholder="请输入用户昵称">
           </div>
           <div class="form-group">
             <label>账号 <span class="required">*</span></label>
-            <input type="text" class="form-input" id="formAccount" placeholder="请输入登录账号">
+            <input type="text" class="form-input" id="formAccount" maxlength="20" placeholder="请输入登录账号">
           </div>
         </div>
         <div class="form-row">
@@ -156,6 +156,21 @@
             <select class="form-select" id="formGender">
               <option value="女">女</option>
               <option value="男">男</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>初始密码 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="formPassword" value="123456" placeholder="请输入初始密码">
+          </div>
+          <div class="form-group">
+            <label>肤质 <span class="required">*</span></label>
+            <select class="form-select" id="formSkinType">
+              <option value="干皮">干皮</option>
+              <option value="油皮">油皮</option>
+              <option value="混合皮" selected>混合皮</option>
+              <option value="敏感肌">敏感肌</option>
             </select>
           </div>
         </div>
@@ -172,9 +187,15 @@
         Account: document.getElementById('formAccount').value,
         Phone: document.getElementById('formPhone').value,
         Gender: document.getElementById('formGender').value,
+        Password: document.getElementById('formPassword').value,
+        SkinType: document.getElementById('formSkinType').value,
       };
       if (!data.UserName || !data.Account) {
-        showToast('请填写必填项', 'warning');
+        showToast('请填写昵称和账号', 'warning');
+        return;
+      }
+      if (!data.Password) {
+        showToast('请填写初始密码', 'warning');
         return;
       }
       const res = await fetchPost('/user/add', data);
