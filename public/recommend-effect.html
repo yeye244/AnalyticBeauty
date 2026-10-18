@@ -11,9 +11,15 @@
     <aside class="sidebar"></aside>
     <div class="main-wrapper">
       <header class="header"></header>
-      <main class="content">
+      <main class="content effect-page">
         <div class="page-header">
-          <span class="page-title">推荐效果分析</span>
+          <div class="page-heading">
+            <h1 class="page-title">推荐效果分析</h1>
+            <p class="page-desc">按推荐类型与时间范围查看推荐记录量、采纳情况与用户分布。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="effectSummary">共 0 条推荐记录</span>
+          </div>
         </div>
 
         <div class="search-bar">
@@ -37,30 +43,39 @@
           </div>
         </div>
 
+        <!-- 第一层：核心指标摘要（数值均来自 /recommend/effect 的 stats 真实聚合） -->
         <div class="stats-row">
           <div class="stat-card">
-            <div class="stat-icon">📊</div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="totalCount">0</div>
               <div class="stat-label">推荐总数</div>
             </div>
           </div>
-          <div class="stat-card stat-success">
-            <div class="stat-icon">✅</div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/></svg>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="acceptedCount">0</div>
               <div class="stat-label">已采纳</div>
             </div>
           </div>
-          <div class="stat-card stat-danger">
-            <div class="stat-icon">❌</div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></svg>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="rejectedCount">0</div>
               <div class="stat-label">未采纳</div>
             </div>
           </div>
-          <div class="stat-card stat-warning">
-            <div class="stat-icon">📈</div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+            </div>
             <div class="stat-info">
               <div class="stat-value" id="acceptRate">0%</div>
               <div class="stat-label">采纳率</div>
@@ -68,6 +83,7 @@
           </div>
         </div>
 
+        <!-- 第二层：核心图表（同源数据并列阅读） -->
         <div class="grid-row">
           <div class="card">
             <div class="card-header">
@@ -80,7 +96,7 @@
 
           <div class="card">
             <div class="card-header">
-              <h3>采纳率对比</h3>
+              <h3>分类采纳率对比</h3>
             </div>
             <div class="card-body">
               <div id="rateChart" class="chart-row-horizontal"></div>
@@ -88,35 +104,25 @@
           </div>
         </div>
 
+        <!-- 第二层续：时间序列（真实按天聚合） -->
         <div class="card">
           <div class="card-header">
-            <h3>推荐趋势（近30天）</h3>
+            <h3>推荐趋势</h3>
+            <span class="card-header-actions panel-desc" id="trendDesc"></span>
           </div>
           <div class="card-body">
-            <div id="trendChart" class="chart-row"></div>
+            <div id="trendChart" class="line-chart"></div>
           </div>
         </div>
 
+        <!-- 第三层：用户排行（图表与列表合并，避免同一指标重复展示） -->
         <div class="card">
           <div class="card-header">
             <h3>用户推荐排行</h3>
+            <span class="card-header-actions panel-desc" id="userRankDesc"></span>
           </div>
           <div class="card-body">
-            <div id="userRankChart" class="user-rank-chart"></div>
-            <div style="margin-top:20px;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>排名</th>
-                    <th>用户昵称</th>
-                    <th>推荐总数</th>
-                    <th>已采纳</th>
-                    <th>采纳率</th>
-                  </tr>
-                </thead>
-                <tbody id="userTableBody"></tbody>
-              </table>
-            </div>
+            <div class="rank-list" id="userRankList"></div>
           </div>
         </div>
       </main>
@@ -136,46 +142,54 @@
         renderStats(res.data);
       } else {
         showToast(res.msg || '查询失败', 'error');
+        renderStats({ stats: [], trend: [], userStats: [] });
       }
     }
 
     function renderStats(data) {
-      const total = (data.stats || []).reduce((sum, s) => sum + s.Total, 0);
-      const accepted = (data.stats || []).reduce((sum, s) => sum + s.Accepted, 0);
-      const rejected = (data.stats || []).reduce((sum, s) => sum + s.Rejected, 0);
-      const rate = total > 0 ? (accepted / total * 100).toFixed(1) : 0;
+      const stats = data.stats || [];
+      const total = stats.reduce((sum, s) => sum + s.Total, 0);
+      const accepted = stats.reduce((sum, s) => sum + s.Accepted, 0);
+      const rejected = stats.reduce((sum, s) => sum + s.Rejected, 0);
+      const rate = total > 0 ? (accepted / total * 100).toFixed(1) : '0.0';
 
       document.getElementById('totalCount').textContent = total;
       document.getElementById('acceptedCount').textContent = accepted;
       document.getElementById('rejectedCount').textContent = rejected;
       document.getElementById('acceptRate').textContent = rate + '%';
+      document.getElementById('effectSummary').textContent = `共 ${total} 条推荐记录`;
 
-      renderTypeChart(data.stats || []);
-      renderRateChart(data.stats || []);
+      renderTypeChart(stats);
+      renderRateChart(stats);
       renderTrendChart(data.trend || []);
-      renderUserRankChart(data.userStats || []);
-      renderUserTable(data.userStats || []);
+      renderUserRank(data.userStats || []);
     }
 
+    // 类型分布：类别少（2 类），保留竖向柱状图；最高者用品牌深色突出
     function renderTypeChart(stats) {
+      const el = document.getElementById('typeChart');
+      if (!stats.length) { el.innerHTML = '<div class="chart-empty">暂无类型分布数据</div>'; return; }
       const maxVal = Math.max(...stats.map(s => s.Total), 1);
-      document.getElementById('typeChart').innerHTML = stats.map(s => `
+      el.innerHTML = stats.map((s, i) => `
         <div class="bar-item">
           <div class="bar-value">${s.Total}</div>
-          <div class="bar" style="height:${(s.Total / maxVal * 100).toFixed(0)}%;background:#409EFF;"></div>
+          <div class="bar" style="height:${(s.Total / maxVal * 100).toFixed(0)}%;background:${i === 0 ? 'var(--accent)' : 'var(--primary)'};"></div>
           <div class="bar-label">${escapeHTML(s.Type)}</div>
         </div>
       `).join('');
     }
 
+    // 采纳率对比：标签较长且需显示占比与分数，采用横向条形
     function renderRateChart(stats) {
-      const colors = ['gradient-green', 'gradient-blue', 'gradient-orange', 'gradient-pink'];
-      document.getElementById('rateChart').innerHTML = stats.map((s, i) => `
+      const el = document.getElementById('rateChart');
+      if (!stats.length) { el.innerHTML = '<div class="chart-empty">暂无采纳率数据</div>'; return; }
+      const topRate = Math.max(...stats.map(s => s.AcceptRate));
+      el.innerHTML = stats.map(s => `
         <div class="h-bar-item">
           <div class="h-bar-label">${escapeHTML(s.Type)}</div>
           <div class="h-bar-track">
-            <div class="h-bar-fill ${colors[i % colors.length]}" style="width:${s.AcceptRate}%;">
-              <span style="color:#fff;font-size:12px;font-weight:600;">${s.AcceptRate}%</span>
+            <div class="h-bar-fill" style="width:${s.AcceptRate}%;background:${s.AcceptRate === topRate ? 'var(--accent)' : 'var(--primary)'};">
+              <span class="h-bar-pct">${s.AcceptRate}%</span>
             </div>
           </div>
           <div class="h-bar-value">${s.Accepted}/${s.Total}</div>
@@ -191,60 +205,99 @@
       return m + '-' + day;
     }
 
+    // 折线图：坐标上限取整避免小数刻度，纵轴自 0 起，不裁剪真实波动
+    function niceMax(v) {
+      const step = Math.ceil(v / 4) || 1;
+      return step * 4;
+    }
+
     function renderTrendChart(trend) {
+      const el = document.getElementById('trendChart');
+      const desc = document.getElementById('trendDesc');
       if (!trend.length) {
-        document.getElementById('trendChart').innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
+        if (desc) desc.textContent = '';
+        el.innerHTML = '<div class="chart-empty">暂无趋势数据</div>';
         return;
       }
-      const maxVal = Math.max(...trend.map(t => parseInt(t.Total)), 1);
-      document.getElementById('trendChart').innerHTML = trend.map(t => `
-        <div class="bar-item" style="min-width:0;">
-          <div class="bar-value" style="font-size:11px;">${t.Total}</div>
-          <div class="bar" style="height:${(parseInt(t.Total) / maxVal * 100).toFixed(0)}%;background:#909399;width:24px;"></div>
-          <div class="bar-label" style="font-size:11px;">${formatDate(t.Date)}</div>
-        </div>
-      `).join('');
-    }
+      // 说明使用真实数据范围，不写固定的时间窗口
+      if (desc) {
+        desc.textContent = `${trend[0].Date} ~ ${trend[trend.length - 1].Date} · 共 ${trend.length} 个统计日`;
+      }
 
-    function renderUserRankChart(list) {
-      const chart = document.getElementById('userRankChart');
-      if (!list.length) {
-        chart.innerHTML = '<div style="width:100%;text-align:center;color:#999;padding:40px;">暂无数据</div>';
-        return;
-      }
-      const topList = list.slice(0, 10);
-      const maxVal = Math.max(...topList.map(u => u.TotalRecommend), 1);
-      chart.innerHTML = topList.map((u, i) => {
-        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
-        const height = (u.TotalRecommend / maxVal * 100).toFixed(0);
-        const rate = u.TotalRecommend > 0 ? (u.Accepted / u.TotalRecommend * 100).toFixed(1) : 0;
-        return `
-          <div class="user-bar-item">
-            <div class="user-bar-tooltip">${escapeHTML(u.UserName || '-')}：${u.TotalRecommend}次推荐，采纳率${rate}%</div>
-            <div class="user-value">${u.TotalRecommend}</div>
-            <div class="user-bar ${rankClass}" style="height:${height}%;"></div>
-            <div class="user-name" title="${escapeHTML(u.UserName || '-')}">${escapeHTML(u.UserName || '-')}</div>
-          </div>
-        `;
+      const W = 760, H = 210;
+      const padL = 36, padR = 14, padT = 14, padB = 30;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const n = trend.length;
+      const maxY = niceMax(Math.max(...trend.map(t => t.Total), 1));
+
+      const px = i => n === 1 ? padL + plotW / 2 : padL + i * plotW / (n - 1);
+      const py = v => padT + plotH - (v / maxY) * plotH;
+
+      const ticks = [0, 1, 2, 3, 4].map(k => {
+        const y = padT + plotH - (k / 4) * plotH;
+        return `<line class="grid-line" x1="${padL}" y1="${y}" x2="${padL + plotW}" y2="${y}"></line>
+                <text class="axis-text" x="${padL - 8}" y="${y + 4}" text-anchor="end">${Math.round(maxY * k / 4)}</text>`;
       }).join('');
+
+      const xLabels = trend.map((t, i) =>
+        `<text class="axis-text" x="${px(i)}" y="${padT + plotH + 18}" text-anchor="middle">${formatDate(t.Date)}</text>`
+      ).join('');
+
+      const dots = trend.map((t, i) => `
+        <circle class="dot-total" cx="${px(i)}" cy="${py(t.Total)}" r="3.5"><title>${t.Date}：推荐总数 ${t.Total} 次</title></circle>
+        <circle class="dot-accepted" cx="${px(i)}" cy="${py(t.Accepted)}" r="3.5"><title>${t.Date}：已采纳 ${t.Accepted} 次</title></circle>
+      `).join('');
+
+      const totalPts = trend.map((t, i) => `${px(i)},${py(t.Total)}`).join(' ');
+      const acceptedPts = trend.map((t, i) => `${px(i)},${py(t.Accepted)}`).join(' ');
+
+      el.innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="推荐趋势折线图">
+          ${ticks}
+          <line class="axis-line" x1="${padL}" y1="${padT + plotH}" x2="${padL + plotW}" y2="${padT + plotH}"></line>
+          ${xLabels}
+          <polyline class="series-total" points="${totalPts}"></polyline>
+          <polyline class="series-accepted" points="${acceptedPts}"></polyline>
+          ${dots}
+        </svg>
+        <div class="chart-legend">
+          <span class="chart-legend-item"><span class="chart-legend-mark" style="background:var(--primary);"></span>推荐总数（次）</span>
+          <span class="chart-legend-item"><span class="chart-legend-mark" style="background:var(--success);"></span>已采纳（次）</span>
+        </div>`;
     }
 
-    function renderUserTable(list) {
-      const tbody = document.getElementById('userTableBody');
+    function rankBadgeClass(index) {
+      return index === 0 ? 'is-first' : index === 1 ? 'is-second' : index === 2 ? 'is-third' : '';
+    }
+
+    // 用户排行：图表与列表合并为一份，名次/昵称/推荐数/已采纳/采纳率全部保留
+    function renderUserRank(list) {
+      const el = document.getElementById('userRankList');
+      const desc = document.getElementById('userRankDesc');
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">暂无数据</td></tr>';
+        if (desc) desc.textContent = '';
+        el.innerHTML = '<div class="chart-empty">暂无用户推荐数据</div>';
         return;
       }
-      tbody.innerHTML = list.map((item, index) => {
-        const rate = item.TotalRecommend > 0 ? (item.Accepted / item.TotalRecommend * 100).toFixed(1) : 0;
+      if (desc) desc.textContent = `共 ${list.length} 位用户 · 按推荐次数降序`;
+      const maxVal = Math.max(...list.map(u => u.TotalRecommend), 1);
+      el.innerHTML = list.map((u, i) => {
+        const rate = u.TotalRecommend > 0 ? (u.Accepted / u.TotalRecommend * 100).toFixed(1) : '0.0';
+        const width = (u.TotalRecommend / maxVal * 100).toFixed(1);
+        const name = escapeHTML(u.UserName || '-');
         return `
-          <tr>
-            <td>${index + 1}</td>
-            <td class="text-bold">${escapeHTML(item.UserName || '-')}</td>
-            <td>${item.TotalRecommend}</td>
-            <td>${item.Accepted}</td>
-            <td><span class="tag ${rate >= 50 ? 'tag-success' : 'tag-warning'}">${rate}%</span></td>
-          </tr>
+          <div class="rank-item${i === 0 ? ' is-first' : ''}">
+            <div class="rank-item-top">
+              <span class="rank-badge ${rankBadgeClass(i)}">${i + 1}</span>
+              <span class="rank-item-name" title="${name}">${name}</span>
+              <span class="tag ${parseFloat(rate) >= 50 ? 'tag-success' : 'tag-warning'}">${rate}%</span>
+            </div>
+            <div class="rank-item-bar">
+              <span class="rank-item-track"><span class="rank-item-fill" style="width:${width}%;"></span></span>
+              <span class="rank-item-stat">推荐 ${u.TotalRecommend} 次 · 采纳 ${u.Accepted} 次</span>
+            </div>
+          </div>
         `;
       }).join('');
     }

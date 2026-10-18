@@ -13,9 +13,16 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-          <span class="page-title">管理员管理</span>
+          <div class="page-heading">
+            <h1 class="page-title">管理员管理</h1>
+            <p class="page-desc">维护后台管理员账号、角色与联系方式，账号与权限变更请谨慎操作。</p>
+          </div>
           <div class="page-actions">
-            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增管理员</button>
+            <span class="page-summary" id="adminSummary">共 0 位管理员</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增管理员
+            </button>
           </div>
         </div>
 
@@ -41,8 +48,8 @@
         </div>
 
         <!-- 表格 -->
-        <div class="table-wrapper">
-          <table class="data-table">
+        <div class="table-wrapper admin-table-wrapper">
+          <table class="data-table admin-table">
             <thead>
               <tr>
                 <th>管理员ID</th>
@@ -52,7 +59,7 @@
                 <th>电话号码</th>
                 <th>最后登录</th>
                 <th>状态</th>
-                <th>操作</th>
+                <th class="col-actions">操作</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -70,7 +77,37 @@
     let total = 0;
     let currentList = [];
 
-    const mockData = [];
+    // 是否处于筛选状态，用于区分「暂无管理员」与「没有符合条件的管理员」
+    function hasActiveFilter() {
+      return document.getElementById('searchAccount').value.trim() !== '' ||
+             document.getElementById('searchRole').value !== '';
+    }
+
+    function setSummary(text) {
+      const el = document.getElementById('adminSummary');
+      if (el) el.textContent = text;
+    }
+
+    // 角色标签统一低饱和度配色：超级管理员沿用品牌浅玫瑰，其余使用中性/信息色
+    function roleTagClass(role) {
+      if (role === '超级管理员') return 'tag-primary';
+      if (role === '内容管理员') return 'tag-info';
+      return 'tag-default';
+    }
+
+    function emptyTableRow(text) {
+      return `<tr class="empty-row"><td colspan="8">
+        <div class="empty-state">
+          <div class="empty-icon">${icon('shield')}</div>
+          <div class="empty-text">${escapeHTML(text)}</div>
+        </div>
+      </td></tr>`;
+    }
+
+    function renderLoadError(msg) {
+      document.getElementById('tableBody').innerHTML = emptyTableRow(msg);
+      document.getElementById('pagination').innerHTML = '';
+    }
 
     async function loadData(page = 1) {
       currentPage = page;
@@ -85,27 +122,31 @@
         renderTable(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
-        renderTable([], 0);
+        currentList = [];
+        total = 0;
+        setSummary('加载失败');
+        renderLoadError(res.msg || '数据加载失败，请稍后重试');
       }
     }
 
     function renderTable(list, totalCount) {
       total = totalCount;
+      setSummary(`共 ${total} 位管理员`);
       const tbody = document.getElementById('tableBody');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(8);
+        tbody.innerHTML = emptyTableRow(hasActiveFilter() ? '没有符合条件的管理员' : '暂无管理员数据');
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
       tbody.innerHTML = list.map(row => `
         <tr>
-          <td>${row.AdminID}</td>
-          <td class="text-bold">${escapeHTML(row.AdminAccount)}</td>
-          <td>${escapeHTML(row.AdminName)}</td>
-          <td><span class="tag ${row.Role === '超级管理员' ? 'tag-danger' : 'tag-info'}">${escapeHTML(row.Role)}</span></td>
-          <td>${escapeHTML(row.Phone) || '-'}</td>
-          <td>${formatDate(row.LastLogin)}</td>
-          <td><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-default'}">${row.Status}</span></td>
+          <td class="cell-id">${row.AdminID}</td>
+          <td class="cell-account"><span class="cell-ellipsis" title="${escapeHTML(row.AdminAccount)}">${escapeHTML(row.AdminAccount)}</span></td>
+          <td class="cell-name"><span class="cell-ellipsis" title="${escapeHTML(row.AdminName)}">${escapeHTML(row.AdminName)}</span></td>
+          <td class="cell-role"><span class="tag ${roleTagClass(row.Role)}">${escapeHTML(row.Role)}</span></td>
+          <td class="cell-phone">${escapeHTML(row.Phone) || '-'}</td>
+          <td class="cell-time">${formatDate(row.LastLogin)}</td>
+          <td class="cell-status"><span class="tag ${row.Status === '正常' ? 'tag-success' : 'tag-default'}">${escapeHTML(row.Status)}</span></td>
           <td class="col-actions">
             <button class="btn-link" onclick="showEditModal(${row.AdminID})">修改</button>
             <button class="btn-link" onclick="resetPassword(${row.AdminID})">重置密码</button>

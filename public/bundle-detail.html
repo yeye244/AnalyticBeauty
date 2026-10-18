@@ -13,18 +13,24 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-          <span class="page-title">护肤套装详情查询</span>
+          <div class="page-heading">
+            <h1 class="page-title">护肤套装详情查询</h1>
+            <p class="page-desc">按套装名称、产品名称或适用肤质查询套装及其产品组合。</p>
+          </div>
+          <div class="page-actions">
+            <span class="page-summary" id="resultSummary">共 0 个套装</span>
+          </div>
         </div>
 
         <!-- 查询条件 -->
         <div class="search-bar">
           <div class="search-item">
             <label>套装名称：</label>
-            <input type="text" class="form-input" id="searchName" placeholder="如：补水保湿套装">
+            <input type="text" class="form-input" id="searchName" placeholder="如：抗衰修护套装">
           </div>
           <div class="search-item">
             <label>产品名称：</label>
-            <input type="text" class="form-input" id="searchProduct" placeholder="如：保湿面膜">
+            <input type="text" class="form-input" id="searchProduct" placeholder="如：小棕瓶">
           </div>
           <div class="search-item">
             <label>适用肤质：</label>
@@ -32,6 +38,7 @@
               <option value="">全部</option>
               <option value="干皮">干皮</option>
               <option value="油皮">油皮</option>
+              <option value="混合皮">混合皮</option>
               <option value="敏感肌">敏感肌</option>
               <option value="所有肤质">所有肤质</option>
             </select>
@@ -42,14 +49,46 @@
           </div>
         </div>
 
-        <!-- 套装列表 -->
-        <div id="bundleList"></div>
+        <!-- 套装详情结果 -->
+        <div class="bundle-detail-grid" id="bundleList"></div>
       </main>
     </div>
   </div>
 
   <script src="js/common.js"></script>
   <script>
+    // 是否处于筛选状态（用于区分「暂无数据」与「筛选无匹配」）
+    function hasActiveFilter() {
+      return !!(document.getElementById('searchName').value.trim() ||
+                document.getElementById('searchProduct').value.trim() ||
+                document.getElementById('searchSkinType').value);
+    }
+
+    // 金额统一保留两位小数（小计由 单价 × 数量 计算得出）
+    function formatMoney(value) {
+      const num = parseFloat(value);
+      return isNaN(num) ? '-' : num.toFixed(2);
+    }
+
+    // 套装肤质为多值拼接（如「干皮,敏感肌,油皮」），拆分为独立标签
+    function renderSkinTags(value) {
+      const items = String(value || '').split(',').map(v => v.trim()).filter(Boolean);
+      if (!items.length) return '<span class="tag tag-default">未标注</span>';
+      return items.map(v => `<span class="tag tag-default">${escapeHTML(v)}</span>`).join('');
+    }
+
+    function setSummary(text) {
+      const el = document.getElementById('resultSummary');
+      if (el) el.textContent = text;
+    }
+
+    function emptyStateHTML(text) {
+      return `<div class="empty-state">
+        <div class="empty-icon">${icon('package')}</div>
+        <div class="empty-text">${escapeHTML(text)}</div>
+      </div>`;
+    }
+
     async function loadData() {
       const productKeyword = document.getElementById('searchProduct').value.trim();
       const params = {
@@ -62,63 +101,61 @@
         renderBundles(res.data || [], productKeyword);
       } else {
         showToast(res.msg || '查询失败', 'error');
-        renderBundles([], '');
+        renderError(res.msg || '数据加载失败，请稍后重试');
       }
+    }
+
+    // 查询失败：明确提示，不与「无结果」混淆，也不展示上一次的遗留数据
+    function renderError(msg) {
+      setSummary('—');
+      document.getElementById('bundleList').innerHTML = emptyStateHTML(msg);
     }
 
     function renderBundles(list, productKeyword) {
       const container = document.getElementById('bundleList');
-      if (!list.length) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">暂无套装数据</div></div>`;
-        return;
-      }
-      container.innerHTML = list.map(bundle => {
+      const cards = list.map(bundle => {
+        const items = bundle.Items || [];
         const filteredItems = productKeyword
-          ? bundle.Items.filter(item => item.ProductName && item.ProductName.includes(productKeyword))
-          : bundle.Items;
+          ? items.filter(item => item.ProductName && item.ProductName.includes(productKeyword))
+          : items;
         if (productKeyword && filteredItems.length === 0) return '';
         return `
-        <div class="card" style="margin-bottom:16px;">
-          <div class="card-body">
-            <div style="display:flex;align-items:center;margin-bottom:16px;">
-              <div>
-                <span class="page-title" style="font-size:16px;">${escapeHTML(bundle.BundleName)}</span>
-                <span class="tag tag-info" style="margin-left:8px;">${escapeHTML(bundle.SkinType)}</span>
-              </div>
-              <div style="margin-left:auto;text-align:right;">
-                <div class="text-muted text-sm">套装总价</div>
-                <div class="text-bold text-danger" style="font-size:20px;">¥${bundle.TotalPrice}</div>
-              </div>
-            </div>
-            <div class="text-muted" style="margin-bottom:12px;font-size:13px;">${escapeHTML(bundle.Description)}</div>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>产品名称</th>
-                  <th>品牌</th>
-                  <th>功效</th>
-                  <th>单价</th>
-                  <th>数量</th>
-                  <th>小计</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filteredItems.map(item => `
-                  <tr>
-                    <td class="text-bold">${escapeHTML(item.ProductName)}</td>
-                    <td>${escapeHTML(item.Brand)}</td>
-                    <td><span class="tag tag-primary">${escapeHTML(item.Effect)}</span></td>
-                    <td>¥${item.Price}</td>
-                    <td>${item.Quantity}</td>
-                    <td class="text-bold">¥${item.Price * item.Quantity}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+        <article class="bd-card">
+          <div class="bd-card-head">
+            <span class="bd-title-wrap">
+              <h3 class="bd-title">${escapeHTML(bundle.BundleName)}</h3>
+              <span class="bd-id">#${bundle.BundleID}</span>
+            </span>
+            <span class="bd-skin">${renderSkinTags(bundle.SkinType)}</span>
           </div>
-        </div>
+          <div class="bd-price-row">
+            <span class="bd-price-label">套餐价</span>
+            <span class="bd-price">¥${formatMoney(bundle.TotalPrice)}</span>
+            <span class="bd-price-origin">原价 <s>¥${formatMoney(bundle.OriginalPrice)}</s></span>
+          </div>
+          <div class="bd-items">
+            <div class="bd-items-title">产品明细 · ${filteredItems.length} 款</div>
+            ${filteredItems.length ? filteredItems.map(item => `
+              <div class="bd-item">
+                <span class="bd-item-name">${escapeHTML(item.ProductName)}</span>
+                <span class="bd-item-brand">${escapeHTML(item.Brand)}</span>
+                <span class="tag tag-default bd-item-type">${escapeHTML(item.Effect)}</span>
+                <span class="bd-item-calc">¥${formatMoney(item.Price)} × ${item.Quantity}</span>
+                <span class="bd-item-sub">¥${formatMoney(parseFloat(item.Price) * (parseInt(item.Quantity) || 1))}</span>
+              </div>`).join('')
+              : '<div class="bd-items-empty">该套装暂无关联产品</div>'}
+          </div>
+        </article>
       `;
-      }).filter(html => html).join('');
+      }).filter(html => html);
+
+      if (!cards.length) {
+        setSummary('共 0 个套装');
+        container.innerHTML = emptyStateHTML(hasActiveFilter() ? '没有符合条件的套装' : '暂无套装数据');
+        return;
+      }
+      setSummary(`共 ${cards.length} 个套装`);
+      container.innerHTML = cards.join('');
     }
 
     function resetSearch() {

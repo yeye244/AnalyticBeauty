@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>风格标签管理 - 美丽推荐平台后台管理系统</title>
+  <title>风格管理 - 美丽推荐平台后台管理系统</title>
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -13,9 +13,16 @@
       <header class="header"></header>
       <main class="content">
         <div class="page-header">
-          <span class="page-title">风格标签管理</span>
+          <div class="page-heading">
+            <h1 class="page-title">风格管理</h1>
+            <p class="page-desc">统一维护用于 AI 分析与搭配推荐的风格档案。</p>
+          </div>
           <div class="page-actions">
-            <button class="btn btn-primary" onclick="showAddModal()">＋ 新增风格</button>
+            <span class="page-summary" id="styleSummary">共 0 个风格</span>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              新增风格
+            </button>
           </div>
         </div>
 
@@ -23,7 +30,7 @@
         <div class="search-bar">
           <div class="search-item">
             <label>风格名称：</label>
-            <input type="text" class="form-input" id="searchName" placeholder="如：韩系风">
+            <input type="text" class="form-input" id="searchName" placeholder="如：韩系清新">
           </div>
           <div class="search-actions">
             <button class="btn btn-primary" onclick="loadData(1)">查询</button>
@@ -31,24 +38,9 @@
           </div>
         </div>
 
-        <!-- 表格 -->
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>风格ID</th>
-                <th>图片</th>
-                <th>风格名称</th>
-                <th>风格描述</th>
-                <th>使用次数</th>
-                <th>创建时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-          <div class="pagination" id="pagination"></div>
-        </div>
+        <!-- 风格卡片 -->
+        <div class="style-grid" id="styleGrid"></div>
+        <div class="pagination" id="pagination"></div>
       </main>
     </div>
   </div>
@@ -60,7 +52,27 @@
     let total = 0;
     let currentList = [];
 
-    const mockData = [];
+    function hasActiveFilter() {
+      return document.getElementById('searchName').value.trim() !== '';
+    }
+
+    // 使用次数为 stylematch 关联表的真实计数，空值按 0 处理
+    function formatUseCount(value) {
+      const num = parseInt(value, 10);
+      return isNaN(num) ? 0 : num;
+    }
+
+    function emptyStateHTML(text) {
+      return `<div class="empty-state">
+        <div class="empty-icon">${icon('palette')}</div>
+        <div class="empty-text">${escapeHTML(text)}</div>
+      </div>`;
+    }
+
+    function setSummary(text) {
+      const el = document.getElementById('styleSummary');
+      if (el) el.textContent = text;
+    }
 
     async function loadData(page = 1) {
       currentPage = page;
@@ -71,36 +83,51 @@
       const res = await fetchGet('/style/list', params);
       if (res.code === 0) {
         currentList = res.data.list || [];
-        renderTable(res.data.list || [], res.data.total || 0);
+        renderCards(res.data.list || [], res.data.total || 0);
       } else {
         showToast(res.msg || '查询失败', 'error');
-        renderTable([], 0);
+        currentList = [];
+        renderLoadError(res.msg || '数据加载失败，请稍后重试');
       }
     }
 
-    function renderTable(list, totalCount) {
+    function renderCards(list, totalCount) {
       total = totalCount;
-      const tbody = document.getElementById('tableBody');
+      setSummary(`共 ${total} 个风格`);
+      const grid = document.getElementById('styleGrid');
       if (!list.length) {
-        tbody.innerHTML = emptyRow(7);
+        grid.innerHTML = emptyStateHTML(hasActiveFilter() ? '没有符合条件的风格' : '暂无风格数据');
         renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
         return;
       }
-      tbody.innerHTML = list.map(row => `
-        <tr>
-          <td>${row.StyleID}</td>
-          <td>${row.StyleImageURL ? `<img class="thumb" src="${escapeHTML(row.StyleImageURL)}" alt="风格图" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-placeholder',textContent:'无图'}))">` : '<div class="thumb-placeholder">无图</div>'}</td>
-          <td><span class="tag tag-primary">${escapeHTML(row.StyleName)}</span></td>
-          <td class="text-muted">${escapeHTML(row.Description)}</td>
-          <td>${row.UseCount} 次</td>
-          <td>${formatDate(row.CreateTime)}</td>
-          <td class="col-actions">
+      grid.innerHTML = list.map(row => `
+        <article class="style-card">
+          <div class="style-card-main">
+            <span class="style-mark">${icon('palette')}</span>
+            <span class="style-card-info">
+              <span class="style-card-name" title="${escapeHTML(row.StyleName)}">${escapeHTML(row.StyleName)}</span>
+              <span class="style-card-id">#${row.StyleID}</span>
+            </span>
+            <span class="style-count">
+              <span class="style-count-num">${formatUseCount(row.UseCount)}</span>
+              <span class="style-count-label">使用次数</span>
+            </span>
+          </div>
+          <div class="style-card-actions">
             <button class="btn-link" onclick="showEditModal(${row.StyleID})">修改</button>
             <button class="btn-link danger" onclick="deleteStyle(${row.StyleID})">删除</button>
-          </td>
-        </tr>
+          </div>
+        </article>
       `).join('');
       renderPagination(document.getElementById('pagination'), total, currentPage, pageSize, loadData);
+    }
+
+    // 加载失败：明确提示并清空分页，不伪装成空数据
+    function renderLoadError(msg) {
+      total = 0;
+      setSummary('—');
+      document.getElementById('styleGrid').innerHTML = emptyStateHTML(msg);
+      document.getElementById('pagination').innerHTML = '';
     }
 
     function resetSearch() {
